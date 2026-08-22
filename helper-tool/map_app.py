@@ -11,6 +11,7 @@ import csv
 import gzip
 import json
 import queue
+import sys
 import threading
 import time
 import tkinter as tk
@@ -36,7 +37,21 @@ try:
 except ImportError:
     keyring = None
 
-PROFILE_DATA_DIR = Path(__file__).parent / "profile_data"
+# В PyInstaller --onefile-сборке __file__ указывает на временную папку
+# распаковки (_MEIPASS) — она создаётся заново при каждом запуске и
+# удаляется при выходе. Всё, что должно переживать перезапуск (прогресс
+# скана, сохранённый логин, лог-файл), обязано лежать рядом с настоящим
+# .exe (sys.executable), а не рядом с этим временным __file__ — иначе
+# каждый новый запуск тихо начинает с нуля, теряя весь накопленный
+# прогресс из предыдущего сеанса (обнаружено вживую: помощник накопил
+# 20057/22991 точек, перезапустил на новой версии — счётчик слетел на
+# 216/21371, старый прогресс оказался заперт в уже удалённой temp-папке).
+if getattr(sys, "frozen", False):
+    APP_DIR = Path(sys.executable).parent
+else:
+    APP_DIR = Path(__file__).parent
+
+PROFILE_DATA_DIR = APP_DIR / "profile_data"
 PROFILE_DATA_DIR.mkdir(exist_ok=True)
 
 KEYRING_SERVICE = "landsoflords-map-scanner"
@@ -95,12 +110,12 @@ def forget_password(username):
 # выше). Запоминаем только последние использованные значения, чтобы поля
 # не приходилось перепечатывать каждый раз, а не полноценный список
 # профилей.
-LOCAL_LOGIN_PATH = Path(__file__).parent / "local_login.json"
+LOCAL_LOGIN_PATH = APP_DIR / "local_login.json"
 # Дублирует всё, что попадает в окошко "Лог" в GUI, построчно с меткой
 # времени — чтобы помощник мог прислать этот файл при проблемах, не
 # копируя текст из окна руками (и чтобы история не терялась при
 # закрытии приложения, в отличие от log_text).
-LOG_FILE_PATH = Path(__file__).parent / "map_scanner.log"
+LOG_FILE_PATH = APP_DIR / "map_scanner.log"
 
 
 def _load_local_settings():
@@ -1150,6 +1165,10 @@ class App:
 
     def _remote_start_worker(self, username):
         try:
+            # Намеренно Path(__file__).parent, не APP_DIR — в собранном exe
+            # это указывает на распакованный бандл (_MEIPASS), где реально
+            # лежат исходники .py, которые нужно закинуть на сервер. Рядом с
+            # настоящим exe этих файлов нет — только в бандле.
             self.remote.deploy_files(Path(__file__).parent)
             self.remote.start_scan(username)
         except RemoteError as e:
