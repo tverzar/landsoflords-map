@@ -20,6 +20,7 @@ import uuid
 import webbrowser
 import winsound
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 from tkinter import ttk, messagebox, filedialog, simpledialog
 
@@ -95,6 +96,11 @@ def forget_password(username):
 # не приходилось перепечатывать каждый раз, а не полноценный список
 # профилей.
 LOCAL_LOGIN_PATH = Path(__file__).parent / "local_login.json"
+# Дублирует всё, что попадает в окошко "Лог" в GUI, построчно с меткой
+# времени — чтобы помощник мог прислать этот файл при проблемах, не
+# копируя текст из окна руками (и чтобы история не терялась при
+# закрытии приложения, в отличие от log_text).
+LOG_FILE_PATH = Path(__file__).parent / "map_scanner.log"
 
 
 def _load_local_settings():
@@ -273,12 +279,20 @@ def fetch_known_cells():
         return set()
 
 
-def submit_batch(points, submitter, session_id, domain):
+def submit_batch(points, submitter, session_id, domain, proxy=None):
     """Шлёт один батч точек на приёмный воркер — вызывается из фонового
     потока (см. _flush_submit_buffer в App), никогда из потока самого
     скана, чтобы сетевой сбой/задержка тут не тормозили сам скан. Молча
     проглатывает любые ошибки — присылка это best-effort дополнение к
-    основному скану, а не то, от чего он должен зависеть."""
+    основному скану, а не то, от чего он должен зависеть.
+
+    proxy: та же строка, что пользователь указал для игровых запросов
+    (LolClient). Раньше эта функция всегда шла напрямую, игнорируя
+    настройку прокси — если у пользователя нет прямого выхода в интернет
+    (сеть разрешает трафик только через прокси), отправка молча падала
+    на КАЖДОМ батче часами, а сам скан продолжал работать как ни в чём
+    не бывало (игровые запросы шли через LolClient со своим прокси,
+    отдельным от этого)."""
     payload = json.dumps({
         "submitter": submitter, "sessionId": session_id, "domain": list(domain),
         "points": points,
@@ -294,8 +308,12 @@ def submit_batch(points, submitter, session_id, domain):
             "User-Agent": "Mozilla/5.0",
         },
     )
+    opener = (
+        urllib.request.build_opener(urllib.request.ProxyHandler({"http": proxy, "https": proxy}))
+        if proxy else urllib.request.build_opener()
+    )
     try:
-        with urllib.request.urlopen(req, timeout=15):
+        with opener.open(req, timeout=15):
             pass
     except (urllib.error.URLError, OSError):
         pass
@@ -790,6 +808,11 @@ class App:
     def _log(self, text):
         self.log_text.insert("end", text + "\n")
         self.log_text.see("end")
+        try:
+            with LOG_FILE_PATH.open("a", encoding="utf-8") as f:
+                f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  {text}\n")
+        except OSError:
+            pass  # тот же принцип, что и в остальном коде — лог на диск best-effort, не должен мешать работе
 
     def _set_progress(self, done, total, note=""):
         self.progress_bar["maximum"] = max(total, 1)
@@ -977,7 +1000,7 @@ class App:
             batch = list(submit_buffer)
             submit_buffer.clear()
             threading.Thread(
-                target=submit_batch, args=(batch, username, session_id, (cx, cy)), daemon=True,
+                target=submit_batch, args=(batch, username, session_id, (cx, cy), proxy), daemon=True,
             ).start()
 
         self.local_stop_event = threading.Event()
