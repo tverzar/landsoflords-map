@@ -665,6 +665,13 @@ class App:
         self.local_proxy = ttk.Entry(self.local_frame)
         self.local_proxy.pack(fill="x", padx=12)
         _set_placeholder(self.local_proxy, "http://host:port или http://user:pass@host:port")
+        # remember_password_var должна существовать ДО первого вызова
+        # _on_local_username_changed() ниже — он её трогает (set(True) при
+        # найденном сохранённом пароле). Раньше эта переменная создавалась
+        # после того вызова — падало у любого, кто уже когда-то сохранял
+        # пароль (AttributeError: 'App' object has no attribute
+        # 'remember_password_var'), пойман вживую по трейсбеку от помощника.
+        self.remember_password_var = tk.BooleanVar(value=False)
         self.local_username.bind("<FocusOut>", self._on_local_username_changed)
         saved_username = load_saved_username()
         if saved_username:
@@ -676,7 +683,6 @@ class App:
             self.local_proxy.insert(0, saved_proxy)
             self.local_proxy.config(foreground=INK)
             self.local_proxy._is_placeholder = False
-        self.remember_password_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
             self.local_frame, text="Запомнить пароль (в системном хранилище)",
             variable=self.remember_password_var,
