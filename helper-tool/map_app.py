@@ -297,9 +297,13 @@ def fetch_known_cells():
 def submit_batch(points, submitter, session_id, domain, proxy=None):
     """Шлёт один батч точек на приёмный воркер — вызывается из фонового
     потока (см. _flush_submit_buffer в App), никогда из потока самого
-    скана, чтобы сетевой сбой/задержка тут не тормозили сам скан. Молча
-    проглатывает любые ошибки — присылка это best-effort дополнение к
-    основному скану, а не то, от чего он должен зависеть.
+    скана, чтобы сетевой сбой/задержка тут не тормозили сам скан.
+
+    Возвращает (ok, detail) вместо того, чтобы просто проглатывать ошибку —
+    раньше отправка была полностью "молчаливой", и когда она часами не
+    работала (см. proxy ниже), в интерфейсе не было ни единого следа
+    проблемы. Вызывающий код (flush_submit_buffer) логирует результат —
+    именно то, что можно прислать при проблемах вместо долгой переписки.
 
     proxy: та же строка, что пользователь указал для игровых запросов
     (LolClient). Раньше эта функция всегда шла напрямую, игнорируя
@@ -328,10 +332,11 @@ def submit_batch(points, submitter, session_id, domain, proxy=None):
         if proxy else urllib.request.build_opener()
     )
     try:
-        with opener.open(req, timeout=15):
-            pass
-    except (urllib.error.URLError, OSError):
-        pass
+        with opener.open(req, timeout=15) as resp:
+            resp.read()
+        return True, None
+    except (urllib.error.URLError, OSError) as e:
+        return False, str(e)
 
 
 class CollapsibleGroup(ttk.Frame):
@@ -966,11 +971,13 @@ class App:
         self.local_stop_btn.config(state="disabled")
 
     def _local_worker(self, username, password, proxy=None):
+        self._safe_after(lambda: self._log(f"[локальный скан: вход под {username}{' через прокси' if proxy else ''}]"))
         try:
             client = LolClient("", "https://www.landsoflords.com", proxy=proxy)
             client.login(username, password)
             client.sync()
         except (ProtocolError, OSError) as e:
+            self._safe_after(lambda: self._log(f"[ошибка входа: {e}]"))
             self._safe_after(lambda: self._local_finish_error(str(e)))
             return
         self.local_client = client
@@ -986,6 +993,9 @@ class App:
         state["failed"] = []
         if not frontier_points and not state["results"]:
             frontier_points = [(cx, cy)]
+        self._safe_after(lambda: self._log(
+            f"[домен ({cx},{cy}), файл {path.name}: уже {len(state['results'])} точек, в очереди {len(frontier_points)}]"
+        ))
 
         # Подтягиваем, что уже известно основному скану (см. build_known_cells.py),
         # чтобы не гонять запросы по территории, которую кто-то другой уже
@@ -995,7 +1005,13 @@ class App:
         if known_cells:
             existing_keys = set(state["results"].keys()) | {f"{p[0]},{p[1]}" for p in frontier_points}
             boundary = known_cells_boundary(known_cells, near=(cx, cy))
-            frontier_points += [(x, y) for x, y in boundary if f"{x},{y}" not in existing_keys]
+            new_boundary = [(x, y) for x, y in boundary if f"{x},{y}" not in existing_keys]
+            frontier_points += new_boundary
+            self._safe_after(lambda: self._log(
+                f"[известная территория: {len(known_cells)} точек, добавлено {len(new_boundary)} новых на границе]"
+            ))
+        else:
+            self._safe_after(lambda: self._log("[не удалось скачать список известной территории — продолжаю без него]"))
 
         from collections import deque
         frontier = deque(frontier_points)
@@ -1004,19 +1020,25 @@ class App:
 
         self._safe_after(lambda: self._refresh_map_from_disk(path))
         self._safe_after(lambda: self.health_var.set("работает"))
+        self._safe_after(lambda: self._log("[скан запущен]"))
 
         share_progress = self.share_progress_var.get()
         submit_buffer, last_submit_time = [], time.time()
         session_id = str(uuid.uuid4())
+
+        def do_submit(batch):
+            ok, detail = submit_batch(batch, username, session_id, (cx, cy), proxy)
+            if ok:
+                self._safe_after(lambda: self._log(f"[отправлено на сервер: {len(batch)} точек]"))
+            else:
+                self._safe_after(lambda: self._log(f"[НЕ УДАЛОСЬ отправить {len(batch)} точек: {detail}]"))
 
         def flush_submit_buffer():
             if not submit_buffer:
                 return
             batch = list(submit_buffer)
             submit_buffer.clear()
-            threading.Thread(
-                target=submit_batch, args=(batch, username, session_id, (cx, cy), proxy), daemon=True,
-            ).start()
+            threading.Thread(target=do_submit, args=(batch,), daemon=True).start()
 
         self.local_stop_event = threading.Event()
         stop_event = self.local_stop_event
@@ -1075,6 +1097,7 @@ class App:
         self.local_start_btn.config(state="normal")
         self.local_stop_btn.config(state="disabled")
         self.health_var.set("остановлено")
+        self._log(f"[скан остановлен: сохранено {done}, в очереди {queued}]")
         notify("Скан остановлен", f"Сохранено {done}, в очереди {queued}.")
 
     def _local_finish_error(self, msg):
