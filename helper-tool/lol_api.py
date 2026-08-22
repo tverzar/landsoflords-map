@@ -144,7 +144,15 @@ def _extract_org_coords(html: str) -> tuple[int, int] | None:
 
 
 class LolClient:
-    def __init__(self, phpsessid: str, base_url: str = "https://www.landsoflords.com"):
+    def __init__(self, phpsessid: str, base_url: str = "https://www.landsoflords.com", proxy: str | None = None):
+        """proxy: "http://host:port", "http://user:pass@host:port", or a
+        SOCKS URL if the socks handler is registered externally (stdlib
+        urllib has no built-in SOCKS support) — passed straight through to
+        urllib.request.ProxyHandler, which reads scheme://host:port itself.
+        None means no per-client proxy (module-level urlopen() would still
+        pick up HTTP_PROXY/HTTPS_PROXY env vars by default, but a client
+        built with its own opener here does NOT fall back to those —
+        explicit proxy in, explicit proxy used, nothing implicit)."""
         self.base_url = base_url.rstrip("/")
         self.phpsessid = phpsessid
         self.token: str | None = None
@@ -154,6 +162,15 @@ class LolClient:
         self.org_coords: tuple[int, int] | None = None  # own domain's map location
         self._server_ts_at_sync: int | None = None
         self._local_ts_at_sync: float | None = None
+        self.proxy = proxy
+        if proxy:
+            handler = urllib.request.ProxyHandler({"http": proxy, "https": proxy})
+            self._opener = urllib.request.build_opener(handler)
+        else:
+            self._opener = urllib.request.build_opener()
+
+    def _urlopen(self, req, timeout=20):
+        return self._opener.open(req, timeout=timeout)
 
     def _headers(self, extra: dict | None = None) -> dict:
         headers = {
@@ -206,7 +223,7 @@ class LolClient:
     def _get(self, path: str) -> str:
         def do():
             req = urllib.request.Request(self.base_url + path, headers=self._headers())
-            with urllib.request.urlopen(req, timeout=20) as resp:
+            with self._urlopen(req, timeout=20) as resp:
                 return resp.read().decode("utf-8", errors="replace")
         return self._with_retries(do)
 
@@ -218,7 +235,7 @@ class LolClient:
                 "X-Requested-With": "XMLHttpRequest",
             })
             req = urllib.request.Request(self.base_url + path, data=body, headers=headers)
-            with urllib.request.urlopen(req, timeout=20) as resp:
+            with self._urlopen(req, timeout=20) as resp:
                 return resp.read().decode("utf-8", errors="replace")
         return self._with_retries(do)
 
@@ -226,7 +243,7 @@ class LolClient:
         def do():
             headers = self._headers({"Content-Type": "application/x-www-form-urlencoded"}) if data else self._headers()
             req = urllib.request.Request(self.base_url + path, data=data, headers=headers)
-            with urllib.request.urlopen(req, timeout=20) as resp:
+            with self._urlopen(req, timeout=20) as resp:
                 for cookie in resp.headers.get_all("Set-Cookie") or []:
                     m = re.match(r"PHPSESSID=([^;]+)", cookie)
                     if m:
@@ -324,7 +341,7 @@ class LolClient:
     def fetch_tile_bytes(self, tile: dict, zoom: int, group: int) -> bytes:
         def do():
             req = urllib.request.Request(tile_url(self.base_url, zoom, group, tile), headers=self._headers())
-            with urllib.request.urlopen(req, timeout=20) as resp:
+            with self._urlopen(req, timeout=20) as resp:
                 return resp.read()
         return self._with_retries(do)
 

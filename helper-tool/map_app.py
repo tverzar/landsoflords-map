@@ -89,23 +89,38 @@ def forget_password(username):
         pass
 
 
-# Логин — не секрет, поэтому просто локальный JSON-файл, а не keyring
-# (пароль отдельно, в системном хранилище — см. выше). Запоминаем только
-# последний использованный, чтобы поле не приходилось перепечатывать
-# каждый раз, а не полноценный список профилей.
+# Логин и адрес прокси — не игровой пароль, поэтому просто локальный
+# JSON-файл, а не keyring (пароль отдельно, в системном хранилище — см.
+# выше). Запоминаем только последние использованные значения, чтобы поля
+# не приходилось перепечатывать каждый раз, а не полноценный список
+# профилей.
 LOCAL_LOGIN_PATH = Path(__file__).parent / "local_login.json"
 
 
-def load_saved_username():
+def _load_local_settings():
     try:
-        return json.loads(LOCAL_LOGIN_PATH.read_text(encoding="utf-8")).get("username") or ""
+        return json.loads(LOCAL_LOGIN_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return ""
+        return {}
+
+
+def load_saved_username():
+    return _load_local_settings().get("username") or ""
+
+
+def load_saved_proxy():
+    return _load_local_settings().get("proxy") or ""
 
 
 def save_username(username):
+    save_local_settings(username=username)
+
+
+def save_local_settings(**updates):
+    data = _load_local_settings()
+    data.update(updates)
     try:
-        LOCAL_LOGIN_PATH.write_text(json.dumps({"username": username}), encoding="utf-8")
+        LOCAL_LOGIN_PATH.write_text(json.dumps(data), encoding="utf-8")
     except OSError:
         pass
 
@@ -118,6 +133,42 @@ INK_DIM = "#93a0ac"
 ACCENT = "#c98a3e"
 ACCENT_INK = "#14100a"
 MAP_BG = "#0b0f14"
+
+
+def _set_placeholder(entry, text):
+    """Grey hint text shown while the ttk.Entry is empty — cleared on focus,
+    restored on blur if the user left it empty again. entry._is_placeholder
+    tracks whether the current content IS the placeholder (vs. real user
+    input that happens to be empty, which can't exist, but vs. having been
+    typed and then deleted) — _entry_real_value() below uses that flag
+    rather than just checking for emptiness, since the placeholder text
+    itself is non-empty."""
+    entry._is_placeholder = True
+    entry.insert(0, text)
+    entry.config(foreground=INK_DIM)
+
+    def on_focus_in(_e):
+        if entry._is_placeholder:
+            entry.delete(0, "end")
+            entry.config(foreground=INK)
+            entry._is_placeholder = False
+
+    def on_focus_out(_e):
+        if not entry.get():
+            entry.insert(0, text)
+            entry.config(foreground=INK_DIM)
+            entry._is_placeholder = True
+
+    entry.bind("<FocusIn>", on_focus_in, add="+")
+    entry.bind("<FocusOut>", on_focus_out, add="+")
+
+
+def _entry_real_value(entry):
+    """entry.get(), but "" if what's showing is only the placeholder set by
+    _set_placeholder() rather than something the user actually typed."""
+    if getattr(entry, "_is_placeholder", False):
+        return ""
+    return entry.get().strip()
 
 
 def notify(title, message):
@@ -572,11 +623,21 @@ class App:
         ttk.Label(self.local_frame, text="Пароль", style="Dim.TLabel").pack(fill="x", **pad)
         self.local_password = ttk.Entry(self.local_frame, show="*")
         self.local_password.pack(fill="x", padx=12)
+        ttk.Label(self.local_frame, text="Прокси (необязательно)", style="Dim.TLabel").pack(fill="x", **pad)
+        self.local_proxy = ttk.Entry(self.local_frame)
+        self.local_proxy.pack(fill="x", padx=12)
+        _set_placeholder(self.local_proxy, "http://host:port или http://user:pass@host:port")
         self.local_username.bind("<FocusOut>", self._on_local_username_changed)
         saved_username = load_saved_username()
         if saved_username:
             self.local_username.insert(0, saved_username)
             self._on_local_username_changed()  # подтягивает пароль из keyring, раз логин уже известен
+        saved_proxy = load_saved_proxy()
+        if saved_proxy:
+            self.local_proxy.delete(0, "end")
+            self.local_proxy.insert(0, saved_proxy)
+            self.local_proxy.config(foreground=INK)
+            self.local_proxy._is_placeholder = False
         self.remember_password_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
             self.local_frame, text="Запомнить пароль (в системном хранилище)",
@@ -846,10 +907,12 @@ class App:
     def _local_start(self):
         username = self.local_username.get().strip()
         password = self.local_password.get()
+        proxy = _entry_real_value(self.local_proxy) or None
         if not username or not password:
             messagebox.showerror("Нет данных", "Введите логин и пароль.")
             return
         save_username(username)
+        save_local_settings(proxy=proxy or "")
         if self.remember_password_var.get():
             save_password(username, password)
         else:
@@ -857,16 +920,16 @@ class App:
         self.local_start_btn.config(state="disabled")
         self.local_stop_btn.config(state="normal")
         self.health_var.set("подключение…")
-        threading.Thread(target=self._local_worker, args=(username, password), daemon=True).start()
+        threading.Thread(target=self._local_worker, args=(username, password, proxy), daemon=True).start()
 
     def _local_stop(self):
         if self.local_stop_event:
             self.local_stop_event.set()
         self.local_stop_btn.config(state="disabled")
 
-    def _local_worker(self, username, password):
+    def _local_worker(self, username, password, proxy=None):
         try:
-            client = LolClient("", "https://www.landsoflords.com")
+            client = LolClient("", "https://www.landsoflords.com", proxy=proxy)
             client.login(username, password)
             client.sync()
         except (ProtocolError, OSError) as e:
@@ -989,7 +1052,8 @@ class App:
             if not username or not password or not self.current_state_path:
                 messagebox.showinfo("Нет данных", "Сначала запустите обычный скан хотя бы раз.")
                 return
-            threading.Thread(target=self._local_recheck_worker, args=(username, password, mode), daemon=True).start()
+            proxy = _entry_real_value(self.local_proxy) or None
+            threading.Thread(target=self._local_recheck_worker, args=(username, password, mode, proxy), daemon=True).start()
         else:
             if not self.remote or not self.remote.connected:
                 messagebox.showinfo("Нет подключения", "Сначала подключитесь к серверу.")
@@ -1002,9 +1066,9 @@ class App:
             self.remote_password_row.pack(fill="x", padx=12, pady=(0, 6))
             self._log(f"[перепроверка запущена: {flag}, введите пароль]")
 
-    def _local_recheck_worker(self, username, password, mode):
+    def _local_recheck_worker(self, username, password, mode, proxy=None):
         try:
-            client = LolClient("", "https://www.landsoflords.com")
+            client = LolClient("", "https://www.landsoflords.com", proxy=proxy)
             client.login(username, password)
             client.sync()
         except (ProtocolError, OSError) as e:
