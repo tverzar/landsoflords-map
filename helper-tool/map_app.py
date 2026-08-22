@@ -48,8 +48,8 @@ KEYRING_SERVICE = "landsoflords-map-scanner"
 # (см. pull_submissions.py) прежде чем что-либо попадает в основной скан.
 SUBMIT_URL = "https://lol-continent-map.rammthaok.workers.dev/api/submit-batch"
 SUBMIT_TOKEN = "wrgUQa_ymUQrpLm1WYmzbDqlDlBqwEOT"
-SUBMIT_BATCH_SIZE = 150  # точек — что раньше наступит, то и шлём
-SUBMIT_INTERVAL_SECONDS = 120
+SUBMIT_BATCH_SIZE = 5000  # точек — что раньше наступит, то и шлём
+SUBMIT_INTERVAL_SECONDS = 3600
 
 # Список уже известных координат основного скана (см. build_known_cells.py)
 # — скачивается перед стартом локального скана и подмешивается в "seen",
