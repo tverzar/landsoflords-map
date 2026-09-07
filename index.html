@@ -1612,7 +1612,11 @@ function drawWalls(viewW, viewH, size, dim) {
   ctx.lineCap = "round";
   const showIcons = size >= WALL_ICON_MIN_SIZE;
   const pointIconSize = Math.max(24, Math.min(36, size * 1.5));
-  const edgeIconSize = pointIconSize * 0.78;
+  // Edge icons (wall/gate/boom) scale with the cell itself, slightly
+  // oversized (1.15x) so neighbouring fortified cells' images touch/overlap
+  // instead of leaving a visible gap — a run of wall cells then reads as one
+  // continuous wall rather than a row of separate disconnected squares.
+  const edgeIconSize = Math.max(24, Math.min(256, size * 1.15));
   let painted = 0;
   for (const w of MAP_DATA.walls) {
     if (painted >= 6000) break; // safety valve at extreme zoom-out over a heavily-fortified continent
