@@ -331,7 +331,25 @@ def flush_state(path, state, pending):
         "fog": state.get("fog", []),
     }
     if "recheck_all_cursor" in state:
+        # Present-but-None is recheck_points()'s own explicit "pass
+        # finished, clear the resume point" — write that through as-is.
         meta["recheck_all_cursor"] = state["recheck_all_cursor"]
+    else:
+        # Absent means THIS caller (e.g. the plain wave scan, which
+        # shares this same meta.json and calls flush_state() on its own
+        # unrelated schedule) has no opinion on the field at all — carry
+        # forward whatever a concurrent/prior --recheck-all pass already
+        # saved instead of silently erasing its resume point just because
+        # this particular flush's state dict never tracked it. Bug found
+        # 2026-09-09: a crash mid-recheck-all followed by the app coming
+        # back up in plain-scan mode left recheck_all_cursor permanently
+        # gone, forcing an hours-long backfill pass to restart from zero.
+        try:
+            existing = json.loads(meta_path(path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = {}
+        if "recheck_all_cursor" in existing:
+            meta["recheck_all_cursor"] = existing["recheck_all_cursor"]
     save_meta(path, meta)
 
 
@@ -640,7 +658,10 @@ def recheck_points(client, path, state, stop_event, login_creds, mode, on_progre
         label = "already-saved points (full backfill)"
 
     total = len(targets)
-    start_at = state.get(cursor_key, 0) if cursor_key else 0
+    # `or 0` rather than `.get(cursor_key, 0)`: an explicit None (the
+    # finish-marker below) must resume from scratch exactly like a
+    # genuinely absent key, not crash on the first `completed += 1`.
+    start_at = (state.get(cursor_key) or 0) if cursor_key else 0
     if start_at:
         print(f"Resuming: skipping {start_at}/{total} already done in this pass.")
     targets = targets[start_at:]
@@ -697,7 +718,12 @@ def recheck_points(client, path, state, stop_event, login_creds, mode, on_progre
 
     finished = completed >= total
     if cursor_key and finished:
-        state.pop(cursor_key, None)
+        # Explicit None, not pop(): flush_state() needs to tell "the pass
+        # finished, clear the resume point" apart from "this caller (e.g.
+        # the plain wave scan, sharing the same meta.json) never had an
+        # opinion on this field" — an absent key means the latter and now
+        # preserves whatever's already on disk instead of erasing it.
+        state[cursor_key] = None
 
     flush_state(path, state, pending)
     print(f"\nRecheck done. Checked {completed}/{total}, {changed} changed.")
