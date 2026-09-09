@@ -616,6 +616,15 @@ _TILE_QUALITY_RE = re.compile(r'title="([^"]*\((\d+)%\))"')
 # yet the user confirmed in-game that a rendered herald/name card there does
 # mean the plot is claimed. " store" is now optional in the match.
 _TILE_OWNER_RE = re.compile(r'<div class="card(?: store)?" data-id="(\d+)">.*?<i class="name">([^<]+)</i>', re.S)
+# Клетка, которую этот аккаунт ещё не открыл в игре ("туман войны") — страница
+# рендерится нормально (200, валидный HTML), просто без блока ground/cover
+# вообще, а <title>/og:title говорят "Туман". До 2026-09-02 это молча
+# схлопывалось в тот же "ground=None", что и реальная ошибка парсинга, и
+# fetch_point() в continent_scan_cli.py считал это провалом сети — пачка
+# туманных клеток в очереди подряд ошибочно принималась за "сессия умерла"
+# и уходила в бесконечный цикл релогинов, которые тут ничего не чинят
+# (открыть туман скану нечем, для этого нужна реальная разведка в игре).
+_FOG_RE = re.compile(r'og:title" content="Туман"')
 # Fallback for tiles that have a building/street/crop feature (`cover` set)
 # but, for whatever reason, no full domain card above — the smaller "who
 # built this" icon block: `<div class="bldicons"><a href="/arm/org/<id>"
@@ -664,7 +673,11 @@ def parse_tile_page(html: str) -> dict:
         "cover": None, "ground": None, "owner_org_id": None, "owner_org_name": None,
         "road": False, "ground_skills": None, "cover_skills": None,
         "cover_state_pct": None, "cover_resist": None, "domain": None,
+        "fog": False,
     }
+    if _FOG_RE.search(html):
+        result["fog"] = True
+        return result
     col_match = re.search(r'<div class="column" id="right">(.*?)<div id="footer"', html, re.S)
     region = col_match.group(1) if col_match else html
     owner_m = _TILE_OWNER_RE.search(region)
@@ -786,3 +799,36 @@ GND_TYPES = {
 }
 
 MINERAL_GROUND_TYPES = {t for t, info in GND_TYPES.items() if info["category"] == "deposit"}
+
+
+# Every "Fortifications" building ("bld") type the game's public encyclopedia
+# lists (/help/bld/wall, no login needed) — this is a `cover` type (parsed
+# into result["cover"]["type"] by parse_tile_page(), the same slot as houses/
+# storages/etc.), not a `ground` type like GND_TYPES above. Gates/walls/booms
+# come in per-direction variants that each get their own type code but share
+# one encyclopedia heading/description — `name` here is the specific
+# per-direction label (e.g. "Южная стена", not the shared heading "Стена"),
+# scraped with Accept-Language: ru to match this project's convention of
+# Russian display names.
+WALL_TYPES = {
+    "keep": "Донжон",
+    "redkeep": "Красный донжон",
+    "fort": "Форт",
+    "tower": "Башня",
+    "swall": "Южная стена",
+    "nwall": "Северная стена",
+    "ewall": "Восточная стена",
+    "wwall": "Западная стена",
+    "sgate": "Южные ворота",
+    "ngate": "Северные ворота",
+    "egate": "Восточные ворота",
+    "wgate": "Западные ворота",
+    "swgate": "Юго-западные ворота",
+    "nwgate": "Северо-западные ворота",
+    "segate": "Юго-восточные ворота",
+    "negate": "Северо-восточные ворота",
+    "hboom": "Восточно-западный бон",
+    "vboom": "Северо-южный бон",
+    "oboom": "Северо-восточный юго-западный бон",
+    "orboom": "Северо-западный юго-восточный бон",
+}

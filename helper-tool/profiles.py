@@ -2,9 +2,13 @@
 password (SSH or game) — those are typed fresh each session, same policy
 as the rest of this project."""
 import json
+import sys
 from pathlib import Path
 
-PROFILES_DIR = Path(__file__).parent / "server_profiles"
+# A one-file PyInstaller app extracts modules into a temporary directory.
+# Profiles must live beside the real executable so they survive upgrades.
+APP_DIR = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+PROFILES_DIR = APP_DIR / "server_profiles"
 
 
 def list_profiles():
