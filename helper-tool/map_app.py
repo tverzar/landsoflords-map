@@ -1210,7 +1210,7 @@ class App:
                 if stop_event.is_set():
                     break
                 chunk = [frontier.popleft() for _ in range(min(cli.CHUNK, len(frontier)))]
-                futures = [pool.submit(cli.fetch_point, client, (p[0], p[1])) for p in chunk]
+                futures = [pool.submit(cli.fetch_point, client, (p[0], p[1]), True) for p in chunk]
                 visited_this_chunk = []
                 for p, hit in zip(chunk, cli.results_or_timeout(futures, chunk)):
                     depth = p[2]
@@ -1380,6 +1380,29 @@ class App:
         path = self.current_state_path
         state = cli.load_state(path)
         self.local_stop_event = threading.Event()
+        # The white "already checked" shading (recheck_overlay in
+        # fast_map.py) lives only in FastMapView's own in-memory Image —
+        # never saved to disk, unlike recheck_all_cursor. A resumed pass
+        # (app restart after a stop/crash) would otherwise show almost
+        # nothing shaded — just whatever gets freshly (re-)marked from
+        # here on — even though the resumable cursor means most of the
+        # continent was genuinely already checked in an earlier run.
+        # Backfill it once up front so the shading matches reality instead
+        # of implying the opposite (found live 2026-09-10: a solid,
+        # already-rechecked square around the home domain rendered as a
+        # hollow outline after a restart, because only cells checked
+        # *since that restart* had ever been marked).
+        resume_cursor = state.get("recheck_all_cursor") if mode == "all" else None
+        if resume_cursor:
+            from itertools import islice
+            done_coords = [
+                tuple(int(n) for n in key.split(","))
+                for key in islice(state["results"].keys(), resume_cursor)
+            ]
+            self._safe_after(lambda pts=done_coords: self.map_view.mark_rechecked(pts))
+            self._safe_after(lambda: self._log(
+                f"[подсвечено {len(done_coords)} ранее пройденных клеток из прошлого запуска]"
+            ))
         self._safe_after(lambda: self._log(f"[перепроверка запущена: {mode}]"))
         last_log_time = [0.0]
 
@@ -1391,7 +1414,7 @@ class App:
                 last_log_time[0] = now
                 self._safe_after(lambda: self._log(f"[перепроверено {completed}/{total}, изменений: {changed}]"))
 
-        finished = cli.recheck_points(client, path, state, self.local_stop_event, (username, password), mode=mode, on_progress=on_progress)
+        finished = cli.recheck_points(client, path, state, self.local_stop_event, (username, password), mode=mode, on_progress=on_progress, capture_building=True)
         self._safe_after(lambda: self._refresh_map_from_disk(path, preserve_overlay=True))
         if finished:
             self._safe_after(lambda: self._log("[перепроверка завершена]"))

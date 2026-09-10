@@ -409,7 +409,7 @@ def grid_neighbors(x, y, step):
                 yield x + dx, y + dy
 
 
-def fetch_point(client, point):
+def fetch_point(client, point, capture_building=False):
     wx, wy = point
     try:
         info = client.fetch_tile_info(wx, wy)
@@ -453,6 +453,20 @@ def fetch_point(client, point):
     cover = info.get("cover")
     if cover and cover.get("type") in WALL_TYPES:
         result["wall"] = cover["type"]
+    elif cover and capture_building:
+        # Same `cover` slot as `wall` above (parse_tile_page() doesn't
+        # distinguish a constructed building from natural cover like
+        # forest/orchard — both come back under /help/bld?type=..., see
+        # its docstring), just not a fortification. Default-off and
+        # helper-only (2026-09-10, user request: "будем хранить их
+        # отдельно, потом решу что с ними делать") — this is exactly the
+        # kind of per-tile extra the 2026-08-31 comment above warns cost
+        # noticeable memory at ~700k points and got stripped from the
+        # server's own scan; only map_app.py's local calls opt in.
+        result["building"] = {
+            "type": cover.get("type"), "name": cover.get("name"),
+            "quality_pct": cover.get("quality_pct"),
+        }
     return result
 
 
@@ -592,7 +606,7 @@ def run_relogin_check(login_creds, client, consecutive_failures):
     return True, consecutive_failures
 
 
-def recheck_points(client, path, state, stop_event, login_creds, mode, on_progress=None):
+def recheck_points(client, path, state, stop_event, login_creds, mode, on_progress=None, capture_building=False):
     """One-off correction/backfill pass over already-saved points — doesn't
     touch the frontier/failed queues, not part of the wave expansion.
 
@@ -654,8 +668,23 @@ def recheck_points(client, path, state, stop_event, login_creds, mode, on_progre
         label = "already-saved points (occupied — refreshing owner/domain data)"
     else:
         targets = [tuple(int(n) for n in key.split(",")) for key in results.keys()]
+        # Sorted by distance from the domain, nearest first (2026-09-10,
+        # user request) — plain dict order reflects ancient history (mostly
+        # whichever account's flood-fill happened to discover a cell
+        # first, on a merged continent frequently the *other* account's
+        # home base), not anything relevant to whoever's running this
+        # pass. Found live: the account's own domain sat at position
+        # 1,151,401 of 2,929,557 in dict order — this pass wouldn't have
+        # reached it for a very long time. `recheck_all_cursor` is a
+        # positional index into `targets`, so changing the order makes any
+        # existing saved cursor point at the wrong cells — callers must
+        # reset it to 0 the one time this ordering changes for a given
+        # state file (see project memory for the 2026-09-10 live reset).
+        cx, cy = state.get("x"), state.get("y")
+        if cx is not None and cy is not None:
+            targets.sort(key=lambda p: (p[0] - cx) ** 2 + (p[1] - cy) ** 2)
         cursor_key = "recheck_all_cursor"
-        label = "already-saved points (full backfill)"
+        label = "already-saved points (full backfill, nearest-to-domain first)"
 
     total = len(targets)
     # `or 0` rather than `.get(cursor_key, 0)`: an explicit None (the
@@ -677,7 +706,7 @@ def recheck_points(client, path, state, stop_event, login_creds, mode, on_progre
             if stop_event.is_set():
                 break
             chunk = targets[i:i + CHUNK]
-            futures = [pool.submit(fetch_point, client, p) for p in chunk]
+            futures = [pool.submit(fetch_point, client, p, capture_building) for p in chunk]
             for hit in results_or_timeout(futures, chunk):
                 completed += 1
                 if hit.get("error"):
