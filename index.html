@@ -19,7 +19,7 @@
   body { display: flex; flex-direction: column; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* --- верхняя панель: переключатель вида + переключатель языка --- */
+  /* --- верхняя панель: континент + переключатель языка --- */
   .topbar {
     flex: none; display: flex; align-items: center; justify-content: space-between;
     gap: 12px; padding: 0 14px; height: 42px; background: var(--panel);
@@ -52,9 +52,6 @@
   #continentSwitch:focus { outline: none; border-color: var(--accent); }
 
   #mapView { flex: 1 1 auto; min-height: 0; display: flex; }
-  #dashboardView { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-  #dashboardView[hidden], #mapView[hidden] { display: none; }
-
   /* ============================= КАРТА ============================= */
   #mapView .sidebar {
     width: 300px; flex: none; display: flex; flex-direction: column;
@@ -137,40 +134,13 @@
   }
   #mapView .legend-divider:first-child { padding-top: 4px; }
   #mapView .legend-best {
-    font-size: 0.7rem; color: var(--accent); margin-top: 2px; cursor: pointer;
-    display: flex; align-items: center; gap: 3px; min-width: 0;
+    font-size: 0.7rem; color: var(--accent); margin-top: 2px;
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  #mapView .legend-best:hover { text-decoration: underline; }
-  #mapView .legend-best .chev { display: inline-block; width: 8px; flex: none; }
-  #mapView .legend-best .best-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #mapView .legend-free {
-    font-size: 0.7rem; color: var(--ours); margin-top: 2px; cursor: pointer;
-    display: flex; align-items: center; gap: 3px; min-width: 0;
+    font-size: 0.7rem; color: var(--ours); margin-top: 2px;
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  #mapView .legend-free:hover { text-decoration: underline; }
-  #mapView .legend-free .chev { display: inline-block; width: 8px; flex: none; }
-  #mapView .legend-free .best-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #mapView .legend-top10 {
-    margin: 2px 8px 6px 31px; border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden;
-  }
-  #mapView .top10-row {
-    display: flex; align-items: center; gap: 8px; padding: 5px 9px; font-size: 0.74rem;
-    border-bottom: 1px solid var(--panel-border); cursor: pointer;
-  }
-  #mapView .top10-row:last-child { border-bottom: none; }
-  #mapView .top10-row:hover { background: rgba(201, 138, 62, 0.08); }
-  #mapView .top10-rank { color: var(--ink-dim); width: 14px; flex: none; }
-  #mapView .top10-coords {
-    flex: 1; font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace; color: var(--ink);
-  }
-  #mapView .top10-quality {
-    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace; color: var(--ink-dim);
-  }
-  #mapView .m-badge { font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; flex: none; white-space: nowrap; }
-  #mapView .m-badge-free { background: rgba(107, 143, 90, 0.22); color: #9fd68a; }
-  #mapView .m-badge-occupied { background: rgba(179, 69, 61, 0.22); color: #e08f8f; }
-  #mapView .m-badge-own { background: rgba(201, 138, 62, 0.22); color: var(--accent); }
-
   #mapView .sidebar-foot {
     display: flex; flex-direction: column; flex: none;
     padding: 12px 18px 16px; border-top: 1px solid var(--panel-border);
@@ -239,119 +209,6 @@
   #mapView .layer-owner .count { font-family:ui-monospace,"SF Mono",Consolas,monospace; }
   @media(max-width:820px) { #mapView .map-status { display:none; } }
 
-  /* ============================ ДАШБОРД ============================ */
-  #dashboardView .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 20px 60px; }
-  #dashboardView h1 {
-    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    font-size: 1.6rem; margin: 0 0 4px; letter-spacing: 0.01em;
-  }
-  #dashboardView .sub { font-size: 0.8rem; color: var(--ink-dim); margin-bottom: 4px; }
-  #dashboardView .sub-note { margin-bottom: 22px; opacity: 0.8; }
-
-  #dashboardView .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px; margin-bottom: 24px; }
-  #dashboardView .stat-card {
-    background: linear-gradient(160deg, var(--panel), var(--panel2));
-    border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
-  }
-  #dashboardView .stat-card .n {
-    font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 1.4rem;
-    color: var(--accent); display: block; font-weight: 600;
-  }
-  #dashboardView .stat-card .l { font-size: 0.7rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.06em; }
-
-  #dashboardView .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
-  #dashboardView .tab {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 7px;
-    padding: 7px 13px; font-size: 0.8rem; color: var(--ink-dim); cursor: pointer;
-    user-select: none; transition: border-color 0.15s, color 0.15s;
-  }
-  #dashboardView .tab:hover { color: var(--ink); border-color: #445266; }
-  #dashboardView .tab.active { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-weight: 600; }
-  #dashboardView .tab .count { opacity: 0.75; margin-left: 4px; }
-
-  #dashboardView table { width: 100%; border-collapse: collapse; background: var(--panel);
-    border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  #dashboardView th, #dashboardView td { padding: 10px 12px; text-align: left; font-size: 0.85rem; vertical-align: middle; }
-  #dashboardView th {
-    background: var(--panel2); color: var(--ink-dim); font-weight: 600; cursor: pointer;
-    user-select: none; white-space: nowrap; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;
-  }
-  #dashboardView th:hover { color: var(--ink); }
-  #dashboardView th .arrow { font-size: 0.7rem; margin-left: 3px; opacity: 0.6; }
-  #dashboardView tr + tr td { border-top: 1px solid var(--border); }
-  #dashboardView tbody tr:hover td { background: rgba(201, 138, 62, 0.05); }
-  #dashboardView .rank {
-    color: var(--ink-dim); font-variant-numeric: tabular-nums; width: 2.2em;
-    font-weight: 600; font-size: 0.9rem;
-  }
-  #dashboardView .rank.medal-1 { color: var(--gold); }
-  #dashboardView .rank.medal-2 { color: var(--silver); }
-  #dashboardView .rank.medal-3 { color: var(--bronze); }
-  #dashboardView .rank .trophy { vertical-align: -3px; margin-right: 3px; }
-  #dashboardView .who { display: flex; align-items: center; gap: 10px; }
-  #dashboardView .who-text { min-width: 0; }
-  #dashboardView .avatar {
-    width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
-    background: var(--bg); border: 1px solid var(--border); flex: none;
-  }
-  #dashboardView .herald-icon {
-    width: 18px; height: 18px; border-radius: 3px; object-fit: cover;
-    vertical-align: -4px; margin-right: 5px; border: 1px solid var(--border);
-  }
-  #dashboardView .who .lord { font-weight: 600; }
-  #dashboardView .who .org { font-size: 0.72rem; color: var(--ink-dim); }
-  #dashboardView .bar-cell { min-width: 140px; }
-  #dashboardView .bar-track { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 4px; }
-  #dashboardView .bar-fill { background: linear-gradient(90deg, var(--accent), #e0a854); height: 100%; border-radius: 4px; }
-  #dashboardView .breakdown { display: flex; flex-wrap: wrap; gap: 6px; }
-  #dashboardView .d-badge {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 5px;
-    padding: 2px 7px; font-size: 0.72rem; color: var(--ink-dim); white-space: nowrap;
-  }
-  #dashboardView .d-badge b { color: var(--ink); }
-  #dashboardView .d-badge a { color: var(--accent); text-decoration: none; }
-  #dashboardView .d-badge a:hover { text-decoration: underline; }
-  #dashboardView .total { font-variant-numeric: tabular-nums; text-align: right; }
-  #dashboardView .quality { font-variant-numeric: tabular-nums; }
-  #dashboardView .coord-link { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
-  #dashboardView .coord-link:hover { text-decoration: underline; }
-  #dashboardView .panel-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 10px; color: var(--ink); }
-
-  #dashboardView .podium {
-    display: flex; align-items: flex-end; justify-content: center; gap: 12px;
-    margin: 4px 0 26px; flex-wrap: wrap;
-  }
-  #dashboardView .podium-card {
-    flex: 1 1 200px; max-width: 260px; border-radius: 12px 12px 6px 6px;
-    background: linear-gradient(160deg, var(--panel), var(--panel2));
-    border: 1px solid var(--border); text-align: center; padding: 18px 14px 16px;
-  }
-  #dashboardView .podium-card.p1 { order: 2; padding-bottom: 56px; border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
-  #dashboardView .podium-card.p2 { order: 1; padding-bottom: 34px; border-color: var(--silver); box-shadow: 0 0 0 1px var(--silver) inset; }
-  #dashboardView .podium-card.p3 { order: 3; padding-bottom: 16px; border-color: var(--bronze); box-shadow: 0 0 0 1px var(--bronze) inset; }
-  #dashboardView .podium-card .trophy-big { margin-bottom: 6px; }
-  #dashboardView .podium-card .trophy-big .trophy { width: 42px; height: 42px; }
-  #dashboardView .podium-card .p-avatar-wrap { position: relative; width: 64px; height: 64px; margin: 0 auto 8px; }
-  #dashboardView .podium-card .p-avatar {
-    width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
-    background: var(--bg); border: 2px solid var(--border); display: block;
-  }
-  #dashboardView .podium-card .p-trophy-badge {
-    position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px;
-    border-radius: 50%; background: var(--panel2); display: flex;
-    align-items: center; justify-content: center; border: 2px solid var(--panel);
-  }
-  #dashboardView .podium-card .p-trophy-badge .trophy { width: 15px; height: 15px; }
-  #dashboardView .podium-card .p-rank { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-dim); }
-  #dashboardView .podium-card .p-lord { font-weight: 700; font-size: 1.05rem; margin: 4px 0 1px; }
-  #dashboardView .podium-card .p-org { font-size: 0.72rem; color: var(--ink-dim); margin-bottom: 10px; }
-  #dashboardView .podium-card .p-metric { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 1.5rem; font-weight: 700; }
-  #dashboardView .podium-card .p-metric-label { font-size: 0.68rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; }
-  #dashboardView .podium-card .p-extra { margin-top: 8px; font-size: 0.74rem; color: var(--ink-dim); }
-  #dashboardView .podium-card.p1 .p-avatar, #dashboardView .podium-card.p1 .p-trophy-badge, #dashboardView .podium-card.p1 .p-metric { color: var(--gold); border-color: var(--gold); }
-  #dashboardView .podium-card.p2 .p-avatar, #dashboardView .podium-card.p2 .p-trophy-badge, #dashboardView .podium-card.p2 .p-metric { color: var(--silver); border-color: var(--silver); }
-  #dashboardView .podium-card.p3 .p-avatar, #dashboardView .podium-card.p3 .p-trophy-badge, #dashboardView .podium-card.p3 .p-metric { color: var(--bronze); border-color: var(--bronze); }
 /* Map navigation, inspection and local construction plans. */
 #heraldLayer { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
 /* Геральдический щит с орнаментальной рамкой — как в игре, а не голая
@@ -465,7 +322,6 @@
   #mapView #mapNotice { top:156px; }
   #mapView #drawingActions { top:156px; left:8px; right:8px; flex-wrap:wrap; }
   #mapView button, #mapView .check { min-height:36px; }
-  #dashboardView .podium { grid-template-columns:1fr; }
   .topbar-brand { display:none; }
   #mapView .map-status { display:none; }
 }
@@ -475,10 +331,6 @@
 <div class="topbar">
   <div class="topbar-brand">Lands of Lords</div>
   <select id="continentSwitch" hidden></select>
-  <div class="switch-group" id="viewSwitch">
-    <button class="switch-btn" data-view="map" data-i18n="viewMap">Карта</button>
-    <button class="switch-btn" data-view="dashboard" data-i18n="viewDash">Топ владельцев</button>
-  </div>
   <div class="topbar-right">
     <div class="switch-group" id="langSwitch">
       <button class="switch-btn" data-lang="ru">RU</button>
@@ -567,7 +419,6 @@
     <button class="layers-toggle" id="layersToggle" data-i18n-title="layersTitle" title="Слои">≋</button>
     <div class="layers-card" id="layersCard" hidden>
       <div class="layers-title" data-i18n="layersTitle">Слои карты</div>
-      <label class="layer-line"><input type="checkbox" id="layerTextures" checked><span data-i18n="layerTextures">Детальные текстуры</span></label>
       <label class="layer-line"><input type="checkbox" id="layerBoundaries" checked><span data-i18n="layerBoundaries">Границы владений</span></label>
       <label class="layer-line"><input type="checkbox" id="layerSettlements" checked><span data-i18n="layerSettlements">Маркеры поселений</span></label>
       <label class="layer-line"><input type="checkbox" id="layerResources" checked><span data-i18n="layerResources">Значки месторождений</span></label>
@@ -579,40 +430,24 @@
   </div>
 </div>
 
-<div class="wrap" id="dashboardView" hidden>
-  <h1 data-i18n="dashTitle">Топ владельцев месторождений</h1>
-  <div class="sub" id="dashFreshness"></div>
-  <div class="sub sub-note" data-i18n="dashSubNote">Ценность — условная шкала по редкости минералов в реальном мире (алмазы/рубины/сапфиры/изумруды &gt; золото &gt; серебро &gt; олово/медь/свинец/сера), рынка цен в игре нет.</div>
-  <div class="stat-cards" id="statCards"></div>
-  <div class="tabs" id="tabs"></div>
-  <p class="panel-title" id="panelTitle"></p>
-  <div class="podium" id="podium"></div>
-  <table>
-    <thead id="thead"></thead>
-    <tbody id="rows"></tbody>
-  </table>
-</div>
-
 <script>
 // ---------------------------------------------------------------------
 // i18n: словарь строк интерфейса (данные — названия типов/ресурсов — уже
-// приходят на обоих языках в самих DATA.map.types[].name/nameEn и
-// DATA.dashboard.types[].name/nameEn, см. build_site.py). Разметка со
+// приходят на обоих языках в самих DATA.map.types[].name/nameEn, см.
+// build_site.py). Разметка со
 // статичным текстом помечена data-i18n/-placeholder/-title и обновляется
 // целиком одним проходом в applyLang(); динамический (построенный из
 // DATA) текст перестраивается вызовом соответствующих render-функций.
 const I18N = {
   ru: {
-    viewMap: "Карта", viewDash: "Топ владельцев",
     mapTitle: "Разведка континента", pageTitleMap: "Разведка континента — Lands of Lords",
-    pageTitleDash: "Топ владельцев месторождений — Lands of Lords",
     searchTerrain: "Поиск типа местности…",
     showAll: "Показать всё",
     zoomIn: "Приблизить", zoomOut: "Отдалить", zoomReset: "Сброс масштаба",
     jumpPlaceholder: "10957E28048N или ссылка", jumpGo: "Перейти",
     mapHint: "Колесо — зум · перетаскивание — панорама · двойной клик — открыть клетку",
     coordinatesLabel: "Координаты", terrainLabel: "Местность", zoomLabel: "Масштаб",
-    layersTitle: "Слои карты", layerTextures: "Детальные текстуры",
+    layersTitle: "Слои карты",
     layerBoundaries: "Границы владений", layerSettlements: "Маркеры поселений",
     layerResources: "Значки месторождений", layerWalls: "Стены и укрепления",
     layerFailures: "Ошибки проверки", layersOwners: "Владения",
@@ -624,33 +459,19 @@ const I18N = {
     statScanTime: "Континент пройден за",
     depositsGroup: "Ценные месторождения", terrainGroup: "Типы местности",
     failedToCheck: "Не удалось проверить",
-    best: (q) => `лучшее ${q}%`, topN: (n) => ` · топ-${n}`, freeLabel: (n) => `свободно: ${n}`,
+    best: (q) => `лучшее ${q}%`, freeLabel: (n) => `свободно: ${n}`,
     badgeFree: "свободно", badgeOccupied: "занято", badgeOwn: "наш домен",
     tQuality: (q) => `${q}% качество`, cellsCount: (n) => `${n} клеток`,
-    dashTitle: "Топ владельцев месторождений",
-    dashSubNote: "Ценность — условная шкала по редкости минералов в реальном мире (алмазы/рубины/сапфиры/изумруды > золото > серебро > олово/медь/свинец/сера), рынка цен в игре нет.",
-    statOwners: "Владельцев", statClaimed: "Занятых ценных клеток", statFree: "Свободных ценных клеток", statResTypes: "Видов ресурсов",
-    tabAll: "Общий топ",
-    colOwner: "Владелец", colValue: "Ценность", colTotal: "Всего клеток", colResTypes: "Видов ресурсов",
-    colPopulation: "Население",
-    colBreakdown: "Разбивка", colCells: "Клеток", colBestQ: "Лучшее качество", colCoords: "Координаты",
-    overallRanking: (n) => `Общий рейтинг по всем ценным ресурсам (${n})`,
-    typeRanking: (name, claimed, total) => `${name} — занято ${claimed} из ${total} клеток`,
-    place: (n) => `${n} место`, valuePoints: "очков ценности", cellsWord: "клеток",
-    bestQCoords: (q, coords) => `лучшее: ${q}% · ${coords}`,
-    depositWordStrip: "Месторождение ",
   },
   en: {
-    viewMap: "Map", viewDash: "Leaderboard",
     mapTitle: "Continent Explorer", pageTitleMap: "Continent Explorer — Lands of Lords",
-    pageTitleDash: "Deposit Owners Leaderboard — Lands of Lords",
     searchTerrain: "Search terrain type…",
     showAll: "Show all",
     zoomIn: "Zoom in", zoomOut: "Zoom out", zoomReset: "Reset zoom",
     jumpPlaceholder: "10957E28048N or link", jumpGo: "Go",
     mapHint: "Wheel — zoom · drag — pan · double-click — open cell",
     coordinatesLabel: "Coordinates", terrainLabel: "Terrain", zoomLabel: "Zoom",
-    layersTitle: "Map layers", layerTextures: "Detailed textures",
+    layersTitle: "Map layers",
     layerBoundaries: "Domain borders", layerSettlements: "Settlement markers",
     layerResources: "Deposit markers", layerWalls: "Walls & fortifications",
     layerFailures: "Scan failures", layersOwners: "Domains",
@@ -662,21 +483,9 @@ const I18N = {
     statScanTime: "Continent scanned in",
     depositsGroup: "Valuable deposits", terrainGroup: "Terrain types",
     failedToCheck: "Failed to check",
-    best: (q) => `best ${q}%`, topN: (n) => ` · top-${n}`, freeLabel: (n) => `free: ${n}`,
+    best: (q) => `best ${q}%`, freeLabel: (n) => `free: ${n}`,
     badgeFree: "free", badgeOccupied: "claimed", badgeOwn: "our domain",
     tQuality: (q) => `${q}% quality`, cellsCount: (n) => `${n} cells`,
-    dashTitle: "Deposit Owners Leaderboard",
-    dashSubNote: "Value is a rough scale based on real-world mineral rarity (diamonds/rubies/sapphires/emeralds > gold > silver > tin/copper/lead/sulfur) — the game has no market prices.",
-    statOwners: "Owners", statClaimed: "Claimed valuable cells", statFree: "Free valuable cells", statResTypes: "Resource types",
-    tabAll: "Overall ranking",
-    colOwner: "Owner", colValue: "Value", colTotal: "Total cells", colResTypes: "Resource types",
-    colPopulation: "Population",
-    colBreakdown: "Breakdown", colCells: "Cells", colBestQ: "Best quality", colCoords: "Coordinates",
-    overallRanking: (n) => `Overall ranking across all valuable resources (${n})`,
-    typeRanking: (name, claimed, total) => `${name} — ${claimed} of ${total} cells claimed`,
-    place: (n) => `#${n}`, valuePoints: "value points", cellsWord: "cells",
-    bestQCoords: (q, coords) => `best: ${q}% · ${coords}`,
-    depositWordStrip: " Deposit",
   },
 };
 let currentLang = localStorage.getItem("lolsite.lang") || "ru";
@@ -713,14 +522,8 @@ async function loadAllData() {
 
 (async () => {
 const ALL_DATA = await loadAllData();
-// Один снимок раньше был единственным (const MAP_DATA/DASH_DATA); теперь
-// это может быть один из нескольких континентов (ALL_DATA.continents),
-// поэтому оба — переменные, которые loadMapData()/loadDashData()
-// переприсваивают при переключении континента (см. switchContinent()
-// ближе к концу файла). Все дальнейшие функции читают их через замыкание,
-// как и раньше — сам этот факт (что это let, а не const) единственное,
-// что для них поменялось.
-let MAP_DATA, DASH_DATA;
+// При переключении континента loadMapData() заменяет текущий снимок карты.
+let MAP_DATA;
 // Фиксированный факт про этот континент (не тикает, в отличие от
 // generatedAtMs) — {approxStart, durationDays, durationHours} или null,
 // если для континента такая метка не задана (см. SCAN_TIMING в build_site.py).
@@ -833,18 +636,10 @@ setInterval(sendActiveHeartbeat, 1200000);
 
 const PT = 3; // base pixels per world unit at scale 1
 
-// При дальнем масштабе остаётся быстрая цветная подложка, а при приближении
-// поверх неё проявляются нарисованные текстуры клеток из единого атласа.
+// Индекс используется для миниатюр легенды; сама карта сохраняет плоскую
+// обзорную подложку на любом масштабе.
 const TILE_ATLAS_CODES = ["iron", "tin", "copper", "coal", "salt", "lead", "silver", "gold", "emerald", "ruby", "diamond", "saphir", "sulfur", "ice", "swater", "bank", "canal", "dike", "fwater", "pond", "shore", "tundra", "marsh", "smarsh", "silt", "basalt", "volcano", "limeston", "granite", "sandston", "marble", "guano", "limey", "shrub", "schist", "slate", "plateau", "dune", "brush", "meadow", "plain", "clay", "chalk"];
 const TILE_ATLAS_INDEX = new Map(TILE_ATLAS_CODES.map((code, i) => [code, i]));
-const TILE_ATLAS_X = [0, 256, 512, 768, 1024, 1280, 1536, 1792];
-const TILE_ATLAS_Y = [0, 256, 512, 768, 1024, 1280];
-const TILE_ATLAS_W = 256, TILE_ATLAS_H = 256;
-const TILE_ATLAS_IMAGE_W = 2048, TILE_ATLAS_IMAGE_H = 1536;
-const tileAtlas = new Image();
-let tileAtlasReady = false;
-tileAtlas.onload = () => { tileAtlasReady = true; render(); };
-tileAtlas.src = "assets/tile-atlas.webp";
 
 const legendAtlas = new Image();
 legendAtlas.src = "assets/legend-atlas.webp";
@@ -900,20 +695,6 @@ function settlementType(name) {
   const twoWord = words.slice(0, 2).join(" ");
   if (SETTLEMENT_TYPE_MAP[twoWord]) return SETTLEMENT_TYPE_MAP[twoWord];
   return SETTLEMENT_TYPE_MAP[words[0]] || null;
-}
-
-function atlasCell(code) {
-  // Bank/coast are water cells visually; their original ground materials
-  // are used only for context-sensitive rims in drawCoastTransitions().
-  if (code === "bank") code = "fwater";
-  if (code === "shore") code = "swater";
-  return rawAtlasCell(code);
-}
-
-function rawAtlasCell(code) {
-  const i = TILE_ATLAS_INDEX.get(code);
-  if (i === undefined) return null;
-  return [TILE_ATLAS_X[i % 8], TILE_ATLAS_Y[Math.floor(i / 8)]];
 }
 
 function tileThumb(code, mineral = false, color = "#e9e3d2") {
@@ -1099,11 +880,6 @@ let showBoundaries = true;
 let showSettlements = true;
 let showResourceMarkers = true;
 let showWalls = true;
-// При выключении на близком масштабе остаётся тот же baseCanvas
-// (плоские цвета клеток), что и так всегда рисуется на дальнем — самая
-// тяжёлая часть рендера (композиция тайлов из атласа + прибрежные
-// переходы, каждый кадр при пане/зуме) просто не считается.
-let showDesignTextures = true;
 let selectedOwnerKey = null; // an ownerIdx, or null — spotlight one settlement's land
 
 const layerOwnerListEl = document.getElementById("layerOwnerList");
@@ -1170,47 +946,11 @@ function glyphSvg(key, color) {
   return `<svg viewBox="0 0 24 24">${build(color, shade(color, 0.55), shade(color, 1.4))}</svg>`;
 }
 
-function statusBadge(status) {
-  if (status === 1) return `<span class="m-badge m-badge-own">${t("badgeOwn")}</span>`;
-  if (status === 2) return `<span class="m-badge m-badge-occupied">${t("badgeOccupied")}</span>`;
-  return `<span class="m-badge m-badge-free">${t("badgeFree")}</span>`;
-}
-
 function formatCoords(x, y) {
   const ew = x >= 0 ? "E" : "W";
   // В Lands of Lords север хранится как отрицательный Y.
   const ns = y <= 0 ? "N" : "S";
   return `${Math.abs(x)}${ew}${Math.abs(y)}${ns}`;
-}
-
-// Общий рендер списка клеток (лучшие по качеству вообще / только среди
-// свободных) — обе раскрывашки используют одну и ту же разметку строки и
-// клик-переход на карту, отличается только источник данных.
-function makeCellListToggle(triggerEl, panelEl, rows) {
-  let built = false;
-  function build() {
-    built = true;
-    panelEl.innerHTML = rows.map(([q, x, y, status], ri) => `
-      <div class="top10-row" data-x="${x}" data-y="${y}">
-        <span class="top10-rank">${ri + 1}</span>
-        <span class="top10-coords">${formatCoords(x, y)}</span>
-        ${statusBadge(status)}
-        <span class="top10-quality">${q}%</span>
-      </div>
-    `).join("");
-    panelEl.querySelectorAll(".top10-row").forEach((r) => {
-      r.addEventListener("click", (e) => {
-        e.stopPropagation();
-        jumpTo(parseFloat(r.dataset.x), parseFloat(r.dataset.y));
-      });
-    });
-  }
-  triggerEl.addEventListener("click", (e) => {
-    e.stopPropagation();
-    panelEl.hidden = !panelEl.hidden;
-    if (!panelEl.hidden) build();
-    triggerEl.querySelector(".chev").textContent = panelEl.hidden ? "▸" : "▾";
-  });
 }
 
 let failedRowRef = null;
@@ -1219,7 +959,6 @@ document.getElementById("layersToggle").addEventListener("click", () => {
   layersCard.hidden = !layersCard.hidden;
 });
 for (const [id, setter] of [
-  ["layerTextures", v => showDesignTextures = v],
   ["layerBoundaries", v => showBoundaries = v],
   ["layerSettlements", v => showSettlements = v],
   ["layerResources", v => showResourceMarkers = v],
@@ -1281,23 +1020,13 @@ function renderLegendList() {
         <span class="type-glyph">${tileThumb(mt.code, mt.mineral, mt.color) || glyphSvg(mt.glyph, mt.color)}</span>
         <div class="legend-text">
           <div class="legend-name" title="${typeFullName(mt)}">${typeName(mt)}${mt.mineral ? '<span class="star">★</span>' : ""}</div>
-          <div class="legend-best"><span class="chev">▸</span><span class="best-label">${t("best", best)}${mt.top.length > 1 ? t("topN", mt.top.length) : ""}</span></div>
-          ${hasFree ? `<div class="legend-free"><span class="chev">▸</span><span class="best-label">${t("freeLabel", fmtNum(mt.free))}</span></div>` : ""}
+          <div class="legend-best">${t("best", best)}</div>
+          ${hasFree ? `<div class="legend-free">${t("freeLabel", fmtNum(mt.free))}</div>` : ""}
         </div>
         <span class="count">${fmtNum(mt.free)}/${fmtNum(mt.count)}</span>
       </div>
-      <div class="legend-top10" hidden></div>
-      ${hasFree ? '<div class="legend-top10 legend-top10-free" hidden></div>' : ""}
     `;
     const main = row.querySelector(".legend-row-main");
-    const bestLine = row.querySelector(".legend-best");
-    const top10El = row.querySelector(".legend-top10");
-
-    makeCellListToggle(bestLine, top10El, mt.top);
-    if (hasFree) {
-      makeCellListToggle(row.querySelector(".legend-free"), row.querySelector(".legend-top10-free"), mt.topFree);
-    }
-
     main.addEventListener("click", () => {
       selected = selected === i ? null : i;
       selectedOwnerKey = null;
@@ -1315,9 +1044,8 @@ function renderLegendList() {
   applyLegendFilter();
 }
 
-// Лёгкие обновления, которые НЕ пересобирают всю легенду (а значит, не
-// сворачивают случайно открытые панели топ-10/свободных клеток у других
-// строк) — используются при выборе строки и при поиске. Полная
+// Лёгкие обновления, которые НЕ пересобирают всю легенду, используются
+// при выборе строки и при поиске. Полная
 // пересборка (renderLegendList) нужна только при смене языка, где имена
 // типов и так меняются целиком.
 function updateLegendActive() {
@@ -1384,136 +1112,6 @@ function worldToScreen(wx, wy) {
 }
 function screenToWorld(sx, sy) {
   return [(sx - offX) / (PT * scale) + minX, (sy - offY) / (PT * scale) + minY];
-}
-
-const TEXTURE_PATCH = 6; // world cells covered by one shared artwork
-
-function drawTexturePatches(points, viewW, viewH, size, alpha = 0.94) {
-  if (!tileAtlasReady || size < 10) return;
-  const patches = new Map();
-  for (const p of points) {
-    const [sx, sy] = worldToScreen(p[0], p[1]);
-    if (sx < -size || sy < -size || sx > viewW + size || sy > viewH + size) continue;
-    const px = Math.floor(p[0] / TEXTURE_PATCH) * TEXTURE_PATCH;
-    const py = Math.floor(p[1] / TEXTURE_PATCH) * TEXTURE_PATCH;
-    const key = p[2] + ":" + px + ":" + py;
-    let patch = patches.get(key);
-    if (!patch) patches.set(key, (patch = {type: p[2], x: px, y: py, points: []}));
-    patch.points.push(p);
-  }
-
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  for (const patch of patches.values()) {
-    const cell = atlasCell(MAP_DATA.types[patch.type].code);
-    if (!cell) continue;
-    ctx.save();
-    ctx.beginPath();
-    // The union of real cells is the mask. Internal seams disappear, while
-    // holes and irregular coast/mountain/deposit edges remain truthful.
-    for (const p of patch.points) {
-      const [sx, sy] = worldToScreen(p[0], p[1]);
-      ctx.rect(sx - 0.5, sy - 0.5, size + 1, size + 1);
-    }
-    ctx.clip();
-    const [dx, dy] = worldToScreen(patch.x, patch.y);
-    ctx.drawImage(tileAtlas, cell[0], cell[1], TILE_ATLAS_W, TILE_ATLAS_H,
-                  dx - 0.5, dy - 0.5,
-                  TEXTURE_PATCH * size + 1, TEXTURE_PATCH * size + 1);
-    ctx.restore();
-  }
-  ctx.restore();
-}
-
-function drawVisibleTextures(viewW, viewH, size) {
-  if (!tileAtlasReady || size < 10) return;
-  const [wx0, wy0] = screenToWorld(-size, -size);
-  const [wx1, wy1] = screenToWorld(viewW + size, viewH + size);
-  const cx0 = Math.floor((Math.min(wx0, wx1) - minX) / CELL);
-  const cx1 = Math.floor((Math.max(wx0, wx1) - minX) / CELL);
-  const cy0 = Math.floor((Math.min(wy0, wy1) - minY) / CELL);
-  const cy1 = Math.floor((Math.max(wy0, wy1) - minY) / CELL);
-  const visible = [];
-  for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) {
-    const arr = grid.get(cx + "," + cy);
-    if (!arr) continue;
-    for (const p of arr) visible.push(p);
-  }
-  drawTexturePatches(visible, viewW, viewH, size);
-  drawCoastTransitions(visible, viewW, viewH, size);
-}
-
-const WATER_CODES = new Set(["swater", "fwater", "pond", "canal", "bank", "shore"]);
-const COAST_CODES = new Set(["bank", "shore"]);
-
-function codeAt(x, y) {
-  const p = pointByCoord.get(x + "," + y);
-  return p ? MAP_DATA.types[p[2]].code : null;
-}
-
-function isWaterAt(x, y) {
-  return WATER_CODES.has(codeAt(x, y));
-}
-
-function drawCoastTransitions(points, viewW, viewH, size) {
-  if (!tileAtlasReady || size < 10) return;
-  const dirs = [
-    [-1, 0, "left"], [1, 0, "right"], [0, -1, "top"], [0, 1, "bottom"],
-  ];
-  ctx.save();
-  ctx.globalAlpha = 0.96;
-  for (const p of points) {
-    if (!COAST_CODES.has(MAP_DATA.types[p[2]].code)) continue;
-    const [sx, sy] = worldToScreen(p[0], p[1]);
-    if (sx < -size || sy < -size || sx > viewW + size || sy > viewH + size) continue;
-    const code = MAP_DATA.types[p[2]].code;
-    const landCell = rawAtlasCell(code);
-    let landSides = dirs.filter(([dx, dy]) => {
-      const neighbor = codeAt(p[0] + dx, p[1] + dy);
-      return neighbor !== null && !WATER_CODES.has(neighbor);
-    });
-    if (code === "shore" && landSides.length > 1) {
-      // A coast has one land-facing edge only. Pick the direction with the
-      // strongest nearby dry-land mass instead of producing boxed corners.
-      const landScore = ([dx, dy]) => {
-        let score = 0;
-        for (let forward = 1; forward <= 2; forward++) {
-          for (let side = -1; side <= 1; side++) {
-            const x = p[0] + dx * forward + (dy !== 0 ? side : 0);
-            const y = p[1] + dy * forward + (dx !== 0 ? side : 0);
-            const neighbor = codeAt(x, y);
-            if (neighbor !== null && !WATER_CODES.has(neighbor)) score += 3 - forward;
-          }
-        }
-        return score;
-      };
-      landSides = [landSides.reduce((best, side) => landScore(side) > landScore(best) ? side : best)];
-    }
-    for (const [, , side] of landSides) {
-      ctx.save();
-      ctx.beginPath();
-      if (side === "left") ctx.rect(sx - .5, sy - .5, size * .28, size + 1);
-      if (side === "right") ctx.rect(sx + size * .72, sy - .5, size * .28 + 1, size + 1);
-      if (side === "top") ctx.rect(sx - .5, sy - .5, size + 1, size * .28);
-      if (side === "bottom") ctx.rect(sx - .5, sy + size * .72, size + 1, size * .28 + 1);
-      ctx.clip();
-      ctx.drawImage(tileAtlas, landCell[0], landCell[1], TILE_ATLAS_W, TILE_ATLAS_H,
-                    sx - .5, sy - .5, size + 1, size + 1);
-      ctx.restore();
-
-      // Thin foam/wet edge: enough to read at map scale without turning the
-      // coast into a bright grid line.
-      ctx.beginPath();
-      if (side === "left") { ctx.moveTo(sx + size * .28, sy); ctx.lineTo(sx + size * .28, sy + size); }
-      if (side === "right") { ctx.moveTo(sx + size * .72, sy); ctx.lineTo(sx + size * .72, sy + size); }
-      if (side === "top") { ctx.moveTo(sx, sy + size * .28); ctx.lineTo(sx + size, sy + size * .28); }
-      if (side === "bottom") { ctx.moveTo(sx, sy + size * .72); ctx.lineTo(sx + size, sy + size * .72); }
-      ctx.strokeStyle = "rgba(219,235,225,.58)";
-      ctx.lineWidth = Math.max(1, size * .07);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
 }
 
 function drawVisibleOwnerBoundaries(viewW, viewH, size, dim) {
@@ -1838,7 +1436,7 @@ function drawResourceMarkers(viewW, viewH, size, dim) {
 }
 
 function render() {
-  if (!baseCanvas || !canvas.width || !canvas.height || currentView !== "map") return;
+  if (!baseCanvas || !canvas.width || !canvas.height) return;
   const dpr = window.devicePixelRatio || 1;
   const viewW = canvas.width / dpr, viewH = canvas.height / dpr;
   ctx.fillStyle = "#0b0f14";
@@ -1856,7 +1454,6 @@ function render() {
   if (showBoundaries && sz < (mapTools.mode === "terrain" ? 2 : 8)) {
     ctx.drawImage(boundaryCanvas, imgX, imgY, boundaryCanvas.width * PT * scale, boundaryCanvas.height * PT * scale);
   }
-  if (showDesignTextures && mapTools.mode === "terrain") drawVisibleTextures(viewW, viewH, sz);
 
   // When a type or owner is selected, dim the whole image and redraw just
   // the matching subset on top at full brightness.
@@ -1888,12 +1485,9 @@ function render() {
       ctx.fillStyle = selectedOwnerKey !== null && mapTools.mode === "owners" ? ownerColor(selectedOwnerKey) : mapTools.terrainColor(MAP_DATA.types[p[2]]);
       ctx.fillRect(sx - 1, sy - 1, s, s);
     }
-    if (mapTools.mode === "terrain") drawTexturePatches(highlightSet, viewW, viewH, sz, 1);
-    drawCoastTransitions(highlightSet, viewW, viewH, sz);
   }
 
-  // Textures are intentionally painted over the baked overview. Restore
-  // crisp ownership contours last so they remain visible at maximum zoom.
+  // Keep ownership contours crisp over the flat overview at every zoom.
   if (showBoundaries) drawVisibleOwnerBoundaries(viewW, viewH, sz, dim);
 
   if (showFailed) {
@@ -2087,216 +1681,7 @@ document.getElementById("zoomIn").addEventListener("click", () => mapTools.zoomA
 document.getElementById("zoomOut").addEventListener("click", () => mapTools.zoomAt(1 / 1.3));
 document.getElementById("zoomReset").addEventListener("click", () => { fitToView(); render(); });
 
-window.addEventListener("resize", () => { if (currentView === "map") { resizeCanvas(); render(); } });
-
-// ======================================================================
-// ДАШБОРД
-// ======================================================================
-// В отличие от карты, дашборду не нужно ничего производить из dashData —
-// все render-функции ниже читают DASH_DATA напрямую при каждом вызове.
-function loadDashData(dashData) {
-  DASH_DATA = dashData;
-}
-
-function coordLink(x, y) {
-  if (x === null || x === undefined) return "";
-  const c = formatCoords(x, y);
-  return `<a class="coord-link" href="https://www.landsoflords.com/map/${c}" target="_blank" rel="noopener">${c}</a>`;
-}
-// Молчаливый плейсхолдер-силуэт — чтобы у лордов без портрета в игре не
-// было битой иконки, а был нейтральный круг.
-const AVATAR_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="#1b2333"/><circle cx="12" cy="9.5" r="4" fill="#3a4658"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="#3a4658"/></svg>'
-);
-function avatarImg(portrait) {
-  const src = portrait || AVATAR_PLACEHOLDER;
-  return `<img class="avatar" src="${src}" loading="lazy" onerror="this.onerror=null;this.src='${AVATAR_PLACEHOLDER}'">`;
-}
-function heraldIcon(herald) {
-  return herald ? `<img class="herald-icon" src="${herald}" loading="lazy" onerror="this.remove()">` : "";
-}
-function whoCell(name, lord, portrait, herald) {
-  const org = `${heraldIcon(herald)}${name}`;
-  if (lord) return `<div class="who">${avatarImg(portrait)}<div class="who-text"><div class="lord">${lord}</div><div class="org">${org}</div></div></div>`;
-  return `<div class="who">${avatarImg(portrait)}<div class="who-text"><div class="lord">${org}</div></div></div>`;
-}
-function medalClass(i) { return i === 0 ? "medal-1" : i === 1 ? "medal-2" : i === 2 ? "medal-3" : ""; }
-function trophySvg(size) {
-  return `<svg class="trophy" viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor"><path d="M18 2h-2V1a1 1 0 00-1-1H9a1 1 0 00-1 1v1H6a1 1 0 00-1 1v2a4 4 0 004 3.874V9a3 3 0 01-3-3H4a1 1 0 00-1 1c0 2.21 1.79 4 4 4h.101A5.002 5.002 0 0011 14.9V17H9a1 1 0 000 2h6a1 1 0 000-2h-2v-2.1a5.002 5.002 0 003.899-3.9H17c2.21 0 4-1.79 4-4a1 1 0 00-1-1h-2a3 3 0 01-3 3v-.126A4 4 0 0019 6V3a1 1 0 00-1-1z"/></svg>`;
-}
-function medalIcon(i) { return i < 3 ? trophySvg(17) : ""; }
-
-const podiumEl = document.getElementById("podium");
-const PODIUM_ORDER = ["p1", "p2", "p3"];
-function renderPodium(top3, valueOf, valueLabel, extraOf) {
-  if (!top3.length) { podiumEl.innerHTML = ""; return; }
-  podiumEl.innerHTML = top3.map((r, i) => `
-    <div class="podium-card ${PODIUM_ORDER[i]}">
-      <div class="p-avatar-wrap">
-        <img class="p-avatar" src="${r.portrait || AVATAR_PLACEHOLDER}" loading="lazy" onerror="this.onerror=null;this.src='${AVATAR_PLACEHOLDER}'">
-        <div class="p-trophy-badge">${trophySvg(15)}</div>
-      </div>
-      <div class="p-rank">${t("place", i + 1)}</div>
-      <div class="p-lord">${r.lord || r.name}</div>
-      ${r.lord ? `<div class="p-org">${heraldIcon(r.herald)}${r.name}</div>` : ""}
-      <div class="p-metric">${fmtNum(valueOf(r))}</div>
-      <div class="p-metric-label">${valueLabel}</div>
-      <div class="p-extra">${extraOf(r)}</div>
-    </div>
-  `).join("");
-}
-
-const tabsEl = document.getElementById("tabs");
-const theadEl = document.getElementById("thead");
-const rowsEl = document.getElementById("rows");
-const titleEl = document.getElementById("panelTitle");
-const dashFreshnessEl = document.getElementById("dashFreshness");
-
-let activeTab = "all";
-let sortKey = null, sortDir = -1;
-
-function dashTypeName(dt) { return currentLang === "ru" ? dt.name : dt.nameEn; }
-function resName(b) { return currentLang === "ru" ? b.name : b.nameEn; }
-function stripDepositWord(name) { return name.replace(t("depositWordStrip"), ""); }
-
-function updateDashFreshness() {
-  const mins = Math.max(0, Math.round((Date.now() - DASH_DATA.generatedAtMs) / 60000));
-  dashFreshnessEl.textContent = `${t("snapshotFrom")} ${DASH_DATA.generatedAt} · ${t("updatedPrefix")} ${agoPhrase(mins)}`;
-}
-
-function renderTabs() {
-  const TABS = [{ code: "all", name: t("tabAll") }, ...DASH_DATA.types.map(dt => ({ code: dt.code, name: dashTypeName(dt) }))];
-  tabsEl.innerHTML = TABS.map(tb => {
-    const count = tb.code === "all" ? DASH_DATA.owners.length : (DASH_DATA.perType[tb.code] || []).length;
-    return `<span class="tab${tb.code === activeTab ? " active" : ""}" data-tab="${tb.code}">${tb.name}<span class="count">${count}</span></span>`;
-  }).join("");
-  tabsEl.querySelectorAll(".tab").forEach(el => {
-    el.addEventListener("click", () => {
-      activeTab = el.dataset.tab;
-      sortKey = null; sortDir = -1;
-      tabsEl.querySelectorAll(".tab").forEach(tb => tb.classList.toggle("active", tb.dataset.tab === activeTab));
-      renderDash();
-    });
-  });
-}
-
-function renderStatCards() {
-  const totalClaimed = DASH_DATA.types.reduce((s, dt) => s + dt.claimed, 0);
-  const totalDeposits = DASH_DATA.types.reduce((s, dt) => s + dt.total, 0);
-  document.getElementById("statCards").innerHTML = `
-    <div class="stat-card"><span class="n">${fmtNum(DASH_DATA.owners.length)}</span><span class="l">${t("statOwners")}</span></div>
-    <div class="stat-card"><span class="n">${fmtNum(totalClaimed)}</span><span class="l">${t("statClaimed")}</span></div>
-    <div class="stat-card"><span class="n">${fmtNum(totalDeposits - totalClaimed)}</span><span class="l">${t("statFree")}</span></div>
-    <div class="stat-card"><span class="n">${DASH_DATA.types.length}</span><span class="l">${t("statResTypes")}</span></div>
-  `;
-}
-
-function renderAll() {
-  titleEl.textContent = t("overallRanking", DASH_DATA.owners.length);
-  theadEl.innerHTML = `<tr>
-    <th></th>
-    <th data-key="name">${t("colOwner")}</th>
-    <th data-key="value">${t("colValue")} <span class="arrow">▾</span></th>
-    <th data-key="total">${t("colTotal")}</th>
-    <th data-key="types_held">${t("colResTypes")}</th>
-    <th data-key="population">${t("colPopulation")}</th>
-    <th>${t("colBreakdown")}</th>
-  </tr>`;
-  const rows = [...DASH_DATA.owners];
-  const key = sortKey || "value";
-  rows.sort((a, b) => {
-    let av = a[key], bv = b[key];
-    if (typeof av === "string") return sortDir * av.localeCompare(bv, currentLang);
-    return sortDir * (av - bv);
-  });
-
-  const usePodium = sortKey === null;
-  if (usePodium) {
-    renderPodium(rows.slice(0, 3), r => r.value, t("valuePoints"),
-      r => r.breakdown.map(b => stripDepositWord(resName(b))).join(", "));
-  } else {
-    podiumEl.innerHTML = "";
-  }
-  const rest = usePodium ? rows.slice(3) : rows;
-  const rankOffset = usePodium ? 3 : 0;
-
-  const maxValue = rows.length ? rows[0].value : 1;
-  rowsEl.innerHTML = rest.map((r, i) => {
-    const rank = rankOffset + i;
-    const breakdown = r.breakdown.map(b =>
-      `<span class="d-badge">${resName(b)}: <b>${b.count}</b> (${b.best_q}% ${coordLink(b.best_x, b.best_y)})</span>`
-    ).join("");
-    return `<tr>
-      <td class="rank ${medalClass(rank)}">${medalIcon(rank)}${rank + 1}</td>
-      <td>${whoCell(r.name, r.lord, r.portrait, r.herald)}</td>
-      <td class="total bar-cell">${fmtNum(r.value)}
-        <div class="bar-track"><div class="bar-fill" style="width:${(r.value / maxValue * 100).toFixed(0)}%"></div></div>
-      </td>
-      <td class="total">${fmtNum(r.total)}</td>
-      <td class="total">${r.types_held}</td>
-      <td class="total">${r.population === null ? "—" : fmtNum(r.population)}</td>
-      <td><div class="breakdown">${breakdown}</div></td>
-    </tr>`;
-  }).join("");
-}
-
-function renderType(code) {
-  const meta = DASH_DATA.types.find(dt => dt.code === code);
-  const rows0 = DASH_DATA.perType[code] || [];
-  titleEl.textContent = t("typeRanking", dashTypeName(meta), meta.claimed, meta.total);
-  theadEl.innerHTML = `<tr>
-    <th></th>
-    <th data-key="name">${t("colOwner")}</th>
-    <th data-key="count">${t("colCells")} <span class="arrow">▾</span></th>
-    <th data-key="best_q">${t("colBestQ")}</th>
-    <th>${t("colCoords")}</th>
-  </tr>`;
-  const rows = [...rows0];
-  const key = sortKey || "count";
-  rows.sort((a, b) => {
-    let av = a[key], bv = b[key];
-    if (typeof av === "string") return sortDir * av.localeCompare(bv, currentLang);
-    return sortDir * (av - bv);
-  });
-
-  const usePodium = sortKey === null;
-  if (usePodium) {
-    renderPodium(rows.slice(0, 3), r => r.count, t("cellsWord"),
-      r => t("bestQCoords", r.best_q, coordLink(r.best_x, r.best_y)));
-  } else {
-    podiumEl.innerHTML = "";
-  }
-  const rest = usePodium ? rows.slice(3) : rows;
-  const rankOffset = usePodium ? 3 : 0;
-
-  const maxCount = rows.length ? rows[0].count : 1;
-  rowsEl.innerHTML = rest.map((r, i) => {
-    const rank = rankOffset + i;
-    return `<tr>
-      <td class="rank ${medalClass(rank)}">${medalIcon(rank)}${rank + 1}</td>
-      <td>${whoCell(r.name, r.lord, r.portrait, r.herald)}</td>
-      <td class="total bar-cell">${fmtNum(r.count)}
-        <div class="bar-track"><div class="bar-fill" style="width:${(r.count / maxCount * 100).toFixed(0)}%"></div></div>
-      </td>
-      <td class="quality">${r.best_q}%</td>
-      <td>${coordLink(r.best_x, r.best_y)}</td>
-    </tr>`;
-  }).join("");
-}
-
-function renderDash() {
-  if (activeTab === "all") renderAll();
-  else renderType(activeTab);
-
-  theadEl.querySelectorAll("th[data-key]").forEach(th => {
-    th.addEventListener("click", () => {
-      const key = th.dataset.key;
-      if (key === sortKey) sortDir *= -1;
-      else { sortKey = key; sortDir = key === "name" ? 1 : -1; }
-      renderDash();
-    });
-  });
-}
+window.addEventListener("resize", () => { resizeCanvas(); render(); });
 
 // ======================================================================
 // Переключатель континента
@@ -2331,7 +1716,6 @@ function switchContinent(idx) {
   SCAN_TIMING = c.scanTiming || null;
   LANDMARKS = c.landmarks || [];
   loadMapData(c.map);
-  loadDashData(c.dashboard);
 
   // Весь UI-стейт, завязанный на старые данные, сбрасывается — иначе,
   // например, selected (индекс типа местности в legend) мог бы указывать
@@ -2339,8 +1723,6 @@ function switchContinent(idx) {
   selected = null; selectedOwnerKey = null; showFailed = false;
   legendSearchQuery = "";
   document.getElementById("legendSearch").value = "";
-  activeTab = "all"; sortKey = null; sortDir = -1;
-
   resizeCanvas();
   fitToView();
   mapTools.onData();
@@ -2352,40 +1734,12 @@ function switchContinent(idx) {
   updateSourceLabel();
   updateFreshness();
 
-  updateDashFreshness();
-  renderStatCards();
-  renderTabs();
-  renderDash();
-
-  document.title = currentView === "map" ? t("pageTitleMap") : t("pageTitleDash");
+  document.title = t("pageTitleMap");
 }
 
 // ======================================================================
-// Переключатель вида / языка
+// Переключатель языка
 // ======================================================================
-const mapViewEl = document.getElementById("mapView");
-const dashViewEl = document.getElementById("dashboardView");
-let currentView = localStorage.getItem("lolsite.view") || "map";
-
-function setView(view) {
-  currentView = view;
-  localStorage.setItem("lolsite.view", view);
-  mapViewEl.hidden = view !== "map";
-  dashViewEl.hidden = view !== "dashboard";
-  document.querySelectorAll("#viewSwitch .switch-btn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
-  document.title = view === "map" ? t("pageTitleMap") : t("pageTitleDash");
-  if (view === "map") {
-    // canvas dimensions collapse to 0 while its container was hidden —
-    // recompute before drawing, but keep the user's existing pan/zoom
-    // instead of re-fitting (which would jump back to the default view).
-    resizeCanvas();
-    render();
-  }
-}
-document.querySelectorAll("#viewSwitch .switch-btn").forEach(btn => {
-  btn.addEventListener("click", () => setView(btn.dataset.view));
-});
-
 function applyLang(lang) {
   currentLang = lang;
   localStorage.setItem("lolsite.lang", lang);
@@ -2408,12 +1762,7 @@ function applyLang(lang) {
   renderLegendList();
   render();
 
-  updateDashFreshness();
-  renderStatCards();
-  renderTabs();
-  renderDash();
-
-  document.title = currentView === "map" ? t("pageTitleMap") : t("pageTitleDash");
+  document.title = t("pageTitleMap");
   if (mapTools.ready) mapTools.localize();
 }
 document.querySelectorAll("#langSwitch .switch-btn").forEach(btn => {
@@ -2840,7 +2189,7 @@ const mapTools = (() => {
   function syncLink() {
     if(restoring||!state.ready)return;
     const [x,y]=center();const params=new URLSearchParams({continent:ALL_DATA.continents[currentContinentIdx].key,x:x.toFixed(2),y:y.toFixed(2),z:scale.toFixed(5),mode:state.mode});
-    params.set('layers',[showDesignTextures,showBoundaries,showSettlements,showResourceMarkers,showWalls,showFailed].map(Boolean).map(Number).join(''));
+    params.set('layers',[showBoundaries,showSettlements,showResourceMarkers,showWalls,showFailed].map(Boolean).map(Number).join(''));
     if(picked)params.set('cell',picked.x+','+picked.y);
     if(selectedOwnerKey!==null)params.set('owner',MAP_DATA.owners[selectedOwnerKey]);
     if(selected!==null)params.set('type',MAP_DATA.types[selected].code);
@@ -2858,8 +2207,8 @@ const mapTools = (() => {
       const x=Number(params.get('x')),y=Number(params.get('y')),z=Number(params.get('z'));
       if([x,y,z].every(Number.isFinite)&&Math.abs(x)<1e7&&Math.abs(y)<1e7&&z>=.005&&z<=24){scale=z;jumpCenter(x,y);}
       setMode(params.get('mode'));
-      const layers=params.get('layers');if(/^[01]{6}$/.test(layers||'')) {
-        [showDesignTextures,showBoundaries,showSettlements,showResourceMarkers,showWalls,showFailed]=[...layers].map(v=>v==='1');syncLayers();
+      const layers=params.get('layers');if(/^[01]{5,6}$/.test(layers||'')) {
+        [showBoundaries,showSettlements,showResourceMarkers,showWalls,showFailed]=[...(layers.length===6?layers.slice(1):layers)].map(v=>v==='1');syncLayers();
       }
       const pair=s=>(s||'').split(',').map(Number);
       const ref=pair(params.get('ref'));if(ref.length===2&&ref.every(Number.isFinite)){reference=ref;$('resourceOrigin').value=formatCoords(...ref);}
@@ -2870,12 +2219,12 @@ const mapTools = (() => {
       const ti=MAP_DATA.types.findIndex(t=>t.code===params.get('type'));selected=ti<0?null:ti;
       const ownerIdx=MAP_DATA.owners.indexOf(params.get('owner'));if(ownerIdx>0)pickOwner(ownerIdx,false);
       else if(params.has('cell')) {const p=pair(params.get('cell'));if(p.length===2&&p.every(v=>Number.isFinite(v)&&Math.abs(v)<1e7))pickCell(...p);}
-      setView('map');render();
+      render();
     } catch {notice(tr('Часть параметров ссылки не удалось прочитать','Some link parameters could not be read'));}
     finally {restoring=false;}
   }
   function share() {syncLink();copyText(location.href);}
-  function syncLayers() {['layerTextures','layerBoundaries','layerSettlements','layerResources','layerWalls','layerFailures'].forEach((id,i)=>$(id).checked=[showDesignTextures,showBoundaries,showSettlements,showResourceMarkers,showWalls,showFailed][i]);}
+  function syncLayers() {['layerBoundaries','layerSettlements','layerResources','layerWalls','layerFailures'].forEach((id,i)=>$(id).checked=[showBoundaries,showSettlements,showResourceMarkers,showWalls,showFailed][i]);}
   // Plans use a separate local namespace for each continent. Undo never changes scan data.
   function savePlans() {write(key('plans.v1'),{active:activePlanId,plans});}
   function checkpoint() {history.push(JSON.stringify(currentPlan()));if(history.length>25)history.shift();future=[];}
@@ -2985,7 +2334,7 @@ const mapTools = (() => {
     places=places.filter(p=>p&&typeof p.name==='string'&&Number.isFinite(p.x)&&Number.isFinite(p.y));
     const stored=read(key('plans.v1'),{});plans=Array.isArray(stored.plans)?stored.plans.filter(MapGeometry.validPlan):[];
     plans.forEach(p=>{if(typeof p.id!=='string')p.id=crypto.randomUUID();});activePlanId=plans.some(p=>p.id===stored.active)?stored.active:(plans[0]?.id||'');
-    const lords=MAP_DATA.ownerLords||Object.fromEntries((DASH_DATA?.owners||[]).map(r=>[r.name,r.lord]));
+    const lords=MAP_DATA.ownerLords||{};
     ownerRows=centerMarkers().map(m=>{
       const b=[Infinity,Infinity,-Infinity,-Infinity];for(const p of ownedByOwner.get(m.key)){b[0]=Math.min(b[0],p[0]);b[1]=Math.min(b[1],p[1]);b[2]=Math.max(b[2],p[0]);b[3]=Math.max(b[3],p[1]);}
       return {...m,lord:lords[m.name]||'',bounds:b};
@@ -3039,7 +2388,7 @@ const mapTools = (() => {
   $('planObjects').onclick=e=>{const b=e.target.closest('[data-delete-shape]');if(b){checkpoint();currentPlan().shapes.splice(Number(b.dataset.deleteShape),1);updatePlanUI();}};
   window.addEventListener('hashchange',restoreLink);
   window.addEventListener('keydown',e=>{
-    if(e.target.closest('input,select,textarea')||currentView!=='map')return;
+    if(e.target.closest('input,select,textarea'))return;
     if(e.key==='Escape'){draft=[];setTool('pan');closeSidebar();$('objectCard').hidden=true;picked=null;selectedOwnerKey=null;render();}
     if(e.key==='Enter'&&state.panel==='plan'){e.preventDefault();finishShape();}
     if(e.key==='+'||e.key==='=')zoomAt(1.3);if(e.key==='-')zoomAt(1/1.3);
@@ -3077,13 +2426,11 @@ document.getElementById("continentNameLabel").textContent = bootContinent.name;
 SCAN_TIMING = bootContinent.scanTiming || null;
 LANDMARKS = bootContinent.landmarks || [];
 loadMapData(bootContinent.map);
-loadDashData(bootContinent.dashboard);
 mapTools.onData();
 renderContinentSwitch();
 
 resizeCanvas();
 fitToView();
-setView(currentView);
 applyLang(currentLang);
 mapTools.restoreLink();
 document.getElementById("loadingMap").remove();
