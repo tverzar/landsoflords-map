@@ -1640,7 +1640,7 @@ canvas.addEventListener("mousemove", (e) => {
   if (!p) { tooltip.style.display = "none"; return; }
   const mt = MAP_DATA.types[p[2]];
   const owner = MAP_DATA.owners[p[5]];
-  const statusText = p[4] === 1 ? t("badgeOwn") : p[4] === 2 ? `${t("badgeOccupied")}${owner ? ": " + owner : ""}` : t("badgeFree");
+  const statusText = p[4] === 1 || p[4] === 2 ? `${t("badgeOccupied")}${owner ? ": " + owner : ""}` : t("badgeFree");
   tooltip.innerHTML = `<span class="t-type">${typeFullName(mt)}</span><br>${t("tQuality", p[3])}<br>${statusText}`;
   tooltip.style.left = (sx + 16) + "px";
   tooltip.style.top = (sy + 12) + "px";
