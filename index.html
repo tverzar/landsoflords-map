@@ -423,6 +423,7 @@
       <label class="layer-line"><input type="checkbox" id="layerSettlements" checked><span data-i18n="layerSettlements">Маркеры поселений</span></label>
       <label class="layer-line"><input type="checkbox" id="layerResources" checked><span data-i18n="layerResources">Значки месторождений</span></label>
       <label class="layer-line"><input type="checkbox" id="layerWalls" checked><span data-i18n="layerWalls">Стены и укрепления</span></label>
+      <label class="layer-line"><input type="checkbox" id="layerFreeOnly"><span data-i18n="layerFreeOnly">Только свободные клетки</span></label>
       <label class="layer-line"><input type="checkbox" id="layerFailures" checked><span data-i18n="layerFailures">Ошибки проверки</span></label>
       <div class="layer-owner-title" data-i18n="layersOwners">Владения</div>
       <div class="layer-owner-list" id="layerOwnerList"></div>
@@ -451,6 +452,7 @@ const I18N = {
     layerBoundaries: "Границы владений", layerSettlements: "Маркеры поселений",
     layerResources: "Значки месторождений", layerWalls: "Стены и укрепления",
     layerFailures: "Ошибки проверки", layersOwners: "Владения",
+    layerFreeOnly: "Только свободные клетки",
     snapshotFrom: "Снимок от", updatedPrefix: "обновлено", justNow: "только что",
     minAgo: (n) => `${n} мин назад`, hAgo: (n) => `${n} ч назад`,
     views: (n) => `${n} просмотров`,
@@ -475,6 +477,7 @@ const I18N = {
     layerBoundaries: "Domain borders", layerSettlements: "Settlement markers",
     layerResources: "Deposit markers", layerWalls: "Walls & fortifications",
     layerFailures: "Scan failures", layersOwners: "Domains",
+    layerFreeOnly: "Free cells only",
     snapshotFrom: "Snapshot from", updatedPrefix: "updated", justNow: "just now",
     minAgo: (n) => `${n} min ago`, hAgo: (n) => `${n} h ago`,
     views: (n) => `${n} views`,
@@ -843,6 +846,7 @@ function loadMapData(mapData) {
 
   cachedCenterMarkers = null;
   cachedResourceMarkers = null;
+  cachedFreeDeposits = null;
 }
 
 function renderStatsBlock() {
@@ -880,6 +884,7 @@ let showBoundaries = true;
 let showSettlements = true;
 let showResourceMarkers = true;
 let showWalls = true;
+let showFreeOnly = false; // слой: только свободные клетки (выбранного типа или все месторождения)
 let selectedOwnerKey = null; // an ownerIdx, or null — spotlight one settlement's land
 
 const layerOwnerListEl = document.getElementById("layerOwnerList");
@@ -964,6 +969,7 @@ for (const [id, setter] of [
   ["layerResources", v => showResourceMarkers = v],
   ["layerWalls", v => showWalls = v],
   ["layerFailures", v => showFailed = v],
+  ["layerFreeOnly", v => { showFreeOnly = v; cachedResourceMarkers = null; cachedFreeDeposits = null; }],
 ]) {
   document.getElementById(id).addEventListener("change", e => {
     setter(e.target.checked);
@@ -1161,12 +1167,21 @@ function drawVisibleOwnerBoundaries(viewW, viewH, size, dim) {
 }
 
 let cachedResourceMarkers = null;
+// Свободные (status 0 по скану) клетки: из подмножества и по всем ценным месторождениям.
+let cachedFreeDeposits = null;
+function freeOf(points) { return points.filter(p => p[4] === 0); }
+function freeDeposits() {
+  if (cachedFreeDeposits) return cachedFreeDeposits;
+  const out = [];
+  MAP_DATA.types.forEach((mt, i) => { if (mt.mineral) for (const p of pointsByType[i]) if (p[4] === 0) out.push(p); });
+  return cachedFreeDeposits = out;
+}
 function resourceMarkers() {
   if (cachedResourceMarkers) return cachedResourceMarkers;
   const out = [];
   for (let typeIdx = 0; typeIdx < MAP_DATA.types.length; typeIdx++) {
     if (!MAP_DATA.types[typeIdx].mineral) continue;
-    const remaining = new Set(pointsByType[typeIdx].map(p => p[0] + "," + p[1]));
+    const remaining = new Set((showFreeOnly ? freeOf(pointsByType[typeIdx]) : pointsByType[typeIdx]).map(p => p[0] + "," + p[1]));
     while (remaining.size) {
       const first = remaining.values().next().value;
       remaining.delete(first);
@@ -1457,19 +1472,20 @@ function render() {
 
   // When a type or owner is selected, dim the whole image and redraw just
   // the matching subset on top at full brightness.
-  const dim = (selected !== null && !(mapTools.mode === "resources" && MAP_DATA.types[selected].mineral)) || selectedOwnerKey !== null;
+  const dim = (selected !== null && !(mapTools.mode === "resources" && MAP_DATA.types[selected].mineral)) || selectedOwnerKey !== null || (showFreeOnly && mapTools.mode !== "resources");
   if (dim) {
     ctx.fillStyle = "rgba(11, 15, 20, 0.84)";
     ctx.fillRect(0, 0, viewW, viewH);
     const s = sz + 2;
-    const highlightSet = selected !== null ? pointsByType[selected] : (ownedByOwner.get(selectedOwnerKey) || []);
+    let highlightSet = selected !== null ? pointsByType[selected] : (ownedByOwner.get(selectedOwnerKey) || []);
+    if (showFreeOnly && selectedOwnerKey === null) highlightSet = selected !== null ? freeOf(pointsByType[selected]) : freeDeposits();
 
     // When a single mineral/terrain TYPE is selected (not an owner —
     // those mix several types/colors), every point shares one color, so a
     // cheap two-pass halo works: a bright ring drawn slightly larger
     // underneath, then the real color on top. Adjacent cells' halos merge
     // into one outline around a whole deposit cluster.
-    if (selected !== null && highlightSet.length) {
+    if ((selected !== null || showFreeOnly) && selectedOwnerKey === null && highlightSet.length) {
       const halo = 2;
       ctx.fillStyle = "#e9e3d2";
       for (const p of highlightSet) {
@@ -1504,7 +1520,7 @@ function render() {
   // is selected, instead of fighting the halo/dim overlay with full
   // brightness saturated colors.
   if (mapTools.mode === "resources" || mapTools.resourceFilterActive) mapTools.drawResourceResults(viewW, viewH, sz);
-  else if (selected !== null) drawResourceMarkers(viewW, viewH, sz, dim);
+  else if (selected !== null || showFreeOnly) drawResourceMarkers(viewW, viewH, sz, dim);
   drawWalls(viewW, viewH, sz, dim);
 
   mapTools.drawSettlements(viewW, viewH, sz, dim);
