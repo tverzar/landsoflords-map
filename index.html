@@ -2344,7 +2344,7 @@ const mapTools = (() => {
   }
   function onData() {
     heraldNodes.forEach(img=>img.remove());heraldNodes.clear();
-    state.ready=false;miniBackground=null;results=[];resultSet.clear();filter=null;state.resourceFilterActive=false;picked=null;selectedOwnerKey=null;reference=MAP_DATA.domain;draft=[];history=[];future=[];overlayImage=null;lastViewport='';
+    state.ready=false;state.mode='terrain';modeLayers.clear();resourceDrawingCache=null;document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode==='terrain');b.setAttribute('aria-pressed',String(b.dataset.mode==='terrain'));});miniBackground=null;results=[];resultSet.clear();filter=null;state.resourceFilterActive=false;picked=null;selectedOwnerKey=null;reference=MAP_DATA.domain;draft=[];history=[];future=[];overlayImage=null;lastViewport='';
     favorites=read(key('favorites'),[]);if(!Array.isArray(favorites))favorites=[];
     places=read(key('places'),[]);if(!Array.isArray(places))places=[];
     places=places.filter(p=>p&&typeof p.name==='string'&&Number.isFinite(p.x)&&Number.isFinite(p.y));
@@ -2384,8 +2384,22 @@ const mapTools = (() => {
   $('applyResourceFilter').onclick=filterResources;$('resetResourceFilter').onclick=clearFilter;
   $('useMapCenter').onclick=()=>{$('resourceOrigin').value=formatCoords(...snap(center()));};
   $('resourceResults').onclick=e=>{const b=e.target.closest('[data-resource-cell]');if(b)pickCell(...b.dataset.resourceCell.split(',').map(Number),true);};
-  $('resetBtn').addEventListener('click',()=>{picked=null;$('objectCard').hidden=true;clearFilter();});
-  $('legend').addEventListener('click',()=>{if(selected!==null&&state.resourceFilterActive)clearFilter();});
+  // «Сбросить» возвращает карту в исходное состояние целиком: режим «Местность», слои по умолчанию, без фильтра и выбора.
+  $('resetBtn').addEventListener('click',()=>{
+    picked=null;$('objectCard').hidden=true;
+    modeLayers.clear();
+    state.resourceFilterActive=false;filter=null;results=[];resultSet.clear();
+    [showBoundaries,showSettlements,showWalls]=[true,true,true];
+    const free=$('layerFreeOnly');
+    if(free&&free.checked){free.checked=false;free.dispatchEvent(new Event('change',{bubbles:true}));}
+    syncLayers();setMode('terrain');renderResourceResults();updateLegendActive();render();
+  });
+  // Выбор типа в легенде: фильтр ресурсов сбрасывается, а нерудный тип в режиме «Ресурсы» не должен давать пустую карту.
+  $('legend').addEventListener('click',()=>{
+    if(selected!==null&&state.resourceFilterActive)clearFilter();
+    if(selected!==null&&state.mode==='resources'&&!MAP_DATA.types[selected]?.mineral)setMode('terrain');
+    updateLegendActive();
+  });
   $('layersCard').addEventListener('change',()=>{syncLink();});
   $('miniMap').onclick=e=>{const c=$('miniMap'),r=c.getBoundingClientRect(),ratio=Math.min(c.width/baseCanvas.width,c.height/baseCanvas.height),x=(e.clientX-r.left)*c.width/r.width,y=(e.clientY-r.top)*c.height/r.height; jumpCenter(minX+(x-(c.width-baseCanvas.width*ratio)/2)/ratio,minY+(y-(c.height-baseCanvas.height*ratio)/2)/ratio);};
   $('newPlan').onclick=()=>newPlan();$('copyPlan').onclick=()=>newPlan(true);
