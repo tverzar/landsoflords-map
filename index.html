@@ -396,7 +396,7 @@
     </div>
     <div class="legend-scroll" id="legend"></div>
     </section><div class="sidebar-foot">
-      <button class="reset-btn" id="resetBtn" data-i18n="showAll">Показать всё</button>
+      <button class="reset-btn" id="resetBtn" data-i18n="showAll">Сбросить всё</button>
     </div>
   </aside>
   <div class="mapwrap">
@@ -443,7 +443,7 @@ const I18N = {
   ru: {
     mapTitle: "Разведка континента", pageTitleMap: "Разведка континента — Lands of Lords",
     searchTerrain: "Поиск типа местности…",
-    showAll: "Показать всё",
+    showAll: "Сбросить всё",
     zoomIn: "Приблизить", zoomOut: "Отдалить", zoomReset: "Сброс масштаба",
     jumpPlaceholder: "13197E19905N или ссылка", jumpGo: "Перейти",
     mapHint: "Колесо — зум · перетаскивание — панорама · двойной клик — открыть клетку",
@@ -468,7 +468,7 @@ const I18N = {
   en: {
     mapTitle: "Continent Explorer", pageTitleMap: "Continent Explorer — Lands of Lords",
     searchTerrain: "Search terrain type…",
-    showAll: "Show all",
+    showAll: "Reset all",
     zoomIn: "Zoom in", zoomOut: "Zoom out", zoomReset: "Reset zoom",
     jumpPlaceholder: "13197E19905N or link", jumpGo: "Go",
     mapHint: "Wheel — zoom · drag — pan · double-click — open cell",
@@ -1887,7 +1887,7 @@ const mapTools = (() => {
     localPlan:['Планы сохраняются в этом браузере. Экспортируйте JSON для резервной копии. Линейка показывает геометрическое расстояние, не путь в игре.','Plans are saved in this browser. Export JSON for backup. Measurements are geometric distances, not in-game routes.'],
     filters:['Подобрать месторождение','Find deposits'], resource:['Ресурс','Resource'], allResources:['Все ресурсы','All resources'], quality:['Качество от, %','Min quality, %'], freeOnly:['Свободные по данным скана','Free in scan data'],
     origin:['Отсчёт от координат','Reference coordinates'], radius:['Радиус, клеток (пусто — любой)','Radius in cells (empty = any)'], useCenter:['Взять центр карты','Use map center'], apply:['Найти','Find'], reset:['Сбросить','Reset'],
-    share:['Поделиться','Share'], search:['Поиск','Search'], noData:['Нет данных скана','No scan data'], layers:['Слои','Layers'], copyCoords:['Копировать координаты','Copy coordinates'], openGame:['Открыть в игре','Open in game'], savePlace:['Сохранить место','Save place'], reference:['Считать расстояние отсюда','Use as reference'],
+    share:['Поделиться','Share'], resetAll:['Сбросить всё','Reset all'], search:['Поиск','Search'], noData:['Нет данных скана','No scan data'], layers:['Слои','Layers'], copyCoords:['Копировать координаты','Copy coordinates'], openGame:['Открыть в игре','Open in game'], savePlace:['Сохранить место','Save place'], reference:['Считать расстояние отсюда','Use as reference'],
   };
   const label = key => (words[key] || [key,key])[currentLang === 'ru' ? 0 : 1];
   const terrainPalette={plain:'#8b9e71',meadow:'#789771',clay:'#ae9a80',chalk:'#c9c4ac',swater:'#476c82',fwater:'#598299',pond:'#628b98',canal:'#658b99',bank:'#829e9e',shore:'#82989a',limeston:'#a3a795',granite:'#89918e',sandston:'#ae9f82',basalt:'#787d79',marble:'#bbc0b1',plateau:'#a4a28b',limey:'#b1b096',shrub:'#909777',tundra:'#9baaa1',marsh:'#6e8980',smarsh:'#859188',silt:'#8d9483',volcano:'#936e60',ice:'#c4d6d5',slate:'#82908f',schist:'#949d97'};
@@ -2363,7 +2363,7 @@ const mapTools = (() => {
   }
   // Static controls are inserted once so language changes preserve form values and focus.
   canvas.parentElement.insertAdjacentHTML('beforeend','<div id="heraldLayer" aria-hidden="true"></div>');
-  canvas.parentElement.insertAdjacentHTML('beforeend',`<div class="map-controls"><button id="openSidebar" class="mobile-only" aria-expanded="false">${span('search')}</button><div class="mode-group">${['terrain','owners','resources'].map(m=>`<button data-mode="${m}" class="${m==='terrain'?'active':''}">${span(m)}</button>`).join('')}</div><span class="spacer"></span><button id="shareMap">${span('share')}</button><button id="openPlan">${span('plan')}</button></div><aside id="objectCard" class="object-card" hidden aria-live="polite"></aside><canvas id="miniMap" width="308" height="224" tabindex="0"></canvas><div id="mapScale"><span id="scaleText"></span><span id="scaleBar"></span></div><div id="unknownKey">${span('noData')}</div><div id="mapNotice" role="status" hidden></div>`);
+  canvas.parentElement.insertAdjacentHTML('beforeend',`<div class="map-controls"><button id="openSidebar" class="mobile-only" aria-expanded="false">${span('search')}</button><div class="mode-group">${['terrain','owners','resources'].map(m=>`<button data-mode="${m}" class="${m==='terrain'?'active':''}">${span(m)}</button>`).join('')}</div><span class="spacer"></span><button id="resetAll">${span('resetAll')}</button><button id="shareMap">${span('share')}</button><button id="openPlan">${span('plan')}</button></div><aside id="objectCard" class="object-card" hidden aria-live="polite"></aside><canvas id="miniMap" width="308" height="224" tabindex="0"></canvas><div id="mapScale"><span id="scaleText"></span><span id="scaleBar"></span></div><div id="unknownKey">${span('noData')}</div><div id="mapNotice" role="status" hidden></div>`);
   canvas.parentElement.insertAdjacentHTML('beforeend',`<div id="drawingActions" hidden><strong id="drawingToolName"></strong><button id="finishDrawing">${span('finish')}</button><button id="cancelDrawing">${span('pan')}</button></div>`);
   $('resourcePanel').insertAdjacentHTML('afterbegin',`<details class="resource-filters" id="resourceFilterDetails"><summary>${span('filters')}</summary><label>${span('resource')}<select id="resourceType"></select></label><div class="filter-pair"><label>${span('quality')}<input id="resourceQuality" type="number" min="0" max="100" value="0"></label><label>${span('sort')}<select id="resourceSort"><option value="distance" data-mt="byDistance">По расстоянию</option><option value="quality" data-mt="byQuality">По качеству</option></select></label></div><label class="check"><input id="resourceFree" type="checkbox" checked>${span('freeOnly')}</label><label>${span('origin')}<input id="resourceOrigin"></label><button id="useMapCenter">${span('useCenter')}</button><label>${span('radius')}<input id="resourceRadius" type="number" min="0" step="1"></label><div class="button-row"><button id="applyResourceFilter">${span('apply')}</button><button id="resetResourceFilter">${span('reset')}</button></div></details><div id="resourceResults" hidden></div>`);
   document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>setPanel(b.dataset.panel));
@@ -2400,6 +2400,7 @@ const mapTools = (() => {
     if(selected!==null&&state.mode==='resources'&&!MAP_DATA.types[selected]?.mineral)setMode('terrain');
     updateLegendActive();
   });
+  $('resetAll').onclick=()=>{$('resetBtn').click();fitToView();render();};
   $('layersCard').addEventListener('change',()=>{syncLink();});
   $('miniMap').onclick=e=>{const c=$('miniMap'),r=c.getBoundingClientRect(),ratio=Math.min(c.width/baseCanvas.width,c.height/baseCanvas.height),x=(e.clientX-r.left)*c.width/r.width,y=(e.clientY-r.top)*c.height/r.height; jumpCenter(minX+(x-(c.width-baseCanvas.width*ratio)/2)/ratio,minY+(y-(c.height-baseCanvas.height*ratio)/2)/ratio);};
   $('newPlan').onclick=()=>newPlan();$('copyPlan').onclick=()=>newPlan(true);
